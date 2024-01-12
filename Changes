@@ -1,5 +1,6 @@
 Revision history for Perl extension Net::IDN::Encode
 
+2.501 (TRIAL RELEASE)
         - apply patch from PR #11 (use uvchr_to_utf8_flags instead of
           uvuni_to_utf8_flags (which is removed in perl 5.38.0)
 

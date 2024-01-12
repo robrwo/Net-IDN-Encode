@@ -46,6 +46,7 @@ my $b = Module::Build->new(
 			'repository' => 'http://github.com/cfaerber/Net-IDN-Encode',
 		},
 	},
+        release_status => 'unstable',
 );
 
 $b->create_build_script;

@@ -8,7 +8,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = "2.500";
+our $VERSION = "2.501";
 $VERSION = eval $VERSION;
 
 our @ISA = ('Exporter');
