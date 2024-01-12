@@ -1,5 +1,8 @@
 Revision history for Perl extension Net::IDN::Encode
 
+        - apply patch from PR #11 (use uvchr_to_utf8_flags instead of
+          uvuni_to_utf8_flags (which is removed in perl 5.38.0)
+
 2.500 2018-10-06
 	- update to Unicode 10.0.0
 	- Net::IDN::UTS46: remove workarounds for pre-9.0.0 test vectors; the
