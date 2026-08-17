@@ -79,7 +79,7 @@ sub decode_punycode {
     LOOP:
 	for (my $k = BASE; 1; $k += BASE) {
 	    my $cp = substr($code, 0, 1, '');
-	    croak("incomplete encoded code point in decode_punycode") if !defined $cp;
+	    croak("incomplete encoded code point in decode_punycode") if !length $cp;
 	    my $digit = ord $cp;
 
 	    ## NB: this depends on the PunyRE catching invalid digit characters
