@@ -140,17 +140,22 @@ encode_punycode(input)
 
 		  /* increase delta to the state corresponding to
 		     the m code point at the beginning of the string */
+		  if(m - n > (UV)((PERL_INT_MAX - delta) / (h+1)))
+		    croak("input exceeds punycode limit");
 		  delta += (m-n) * (h+1);
 		  n = m;
 
 		  /* now find the chars to be encoded in this round */
 
+		  if(skip_delta > PERL_INT_MAX - delta)
+		    croak("input exceeds punycode limit");
 		  delta += skip_delta;
 		  for(in_p = skip_p; in_p < in_e;) {
 		    c = utf8_to_uvchr_buf((U8*)in_p, (U8*)in_e, &u8);
 		    c = NATIVE_TO_UNI(c);
 
 		    if(c < n) {
+		      if(delta == PERL_INT_MAX) croak("input exceeds punycode limit");
 		      ++delta;
                     } else if( c == n ) {
 		      q = delta;
@@ -162,7 +167,7 @@ encode_punycode(input)
 			*re_p++ = enc_digit[t + ((q-t) % (BASE-t))];
 		        q = (q-t) / (BASE-t);
   		      }
-		      if(q > BASE) croak("input exceeds punycode limit");
+		      if(q >= BASE) croak("input exceeds punycode limit");
 		      grow_string(RETVAL, &re_s, &re_p, &re_e, sizeof(char));
 	              *re_p++ = enc_digit[q];
 		      bias = adapt(delta, h+1, first);
@@ -171,6 +176,7 @@ encode_punycode(input)
                     }
 		    in_p += u8;
 		  }
+		  if(delta == PERL_INT_MAX) croak("input exceeds punycode limit");
 		  ++delta;
 		  ++n;
 		}
