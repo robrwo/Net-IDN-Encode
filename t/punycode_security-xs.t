@@ -24,7 +24,13 @@ our @encode_dies = (
     "encoding overflows the delta accumulator"],
 );
 
-plan tests => 1 + 2 * (scalar @encode_dies);
+our @decode_roundtrips = (
+  [chr(0x10FFFF) x 125, "decoding outgrows the output buffer"],
+);
+
+plan tests => 1
+  + 2 * (scalar @encode_dies)
+  + 1 * (scalar @decode_roundtrips);
 
 foreach my $test (@encode_dies)
 {
@@ -33,4 +39,13 @@ foreach my $test (@encode_dies)
   is(eval { Net::IDN::Punycode::encode_punycode($input) }, undef,
     $comment.' (encode_punycode dies)');
   like($@, $message, $comment.' (encode_punycode message)');
+}
+
+foreach my $test (@decode_roundtrips)
+{
+  my ($input, $comment) = @{$test};
+
+  my $label = Net::IDN::Punycode::PP::encode_punycode($input);
+  is(Net::IDN::Punycode::decode_punycode($label), $input,
+    $comment.' (decode_punycode round-trips)');
 }

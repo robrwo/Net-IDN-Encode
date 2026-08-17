@@ -255,11 +255,12 @@ decode_punycode(input)
 
 		  u8 = UNISKIP(n);				/* how many bytes we need */
 
+		  grow_string(RETVAL, &re_s, &re_p, &re_e, u8);
+
 		  j = i;
 		  for(skip_p = re_s; j > 0; j--) 		/* find position in UTF-8 */
 		    skip_p+=UTF8SKIP(skip_p);
 
-		  grow_string(RETVAL, &re_s, &re_p, &re_e, u8);
 		  if(skip_p < re_p)				/* move succeeding chars */
 		    Move(skip_p, skip_p + u8, re_p - skip_p, char);
 		  re_p += u8;
