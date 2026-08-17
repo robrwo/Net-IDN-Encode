@@ -46,11 +46,18 @@ our @agree = (
   [("a" x 1927).chr(0x10FFFF), "delta above a signed 32 bit limit"],
 );
 
+our @stringifies = (
+  [[1 .. 50], "an array reference"],
+  [sub { 1 }, "a code reference"],
+  [\"scalar", "a scalar reference"],
+);
+
 plan tests => 1
   + 2 * (scalar @encode_dies)
   + 3 * (scalar @decode_dies)
   + 1 * (scalar @decode_roundtrips)
-  + 2 * (scalar @agree);
+  + 2 * (scalar @agree)
+  + 1 * (scalar @stringifies);
 
 foreach my $test (@encode_dies)
 {
@@ -91,4 +98,18 @@ foreach my $test (@agree)
     $comment.' (encode_punycode matches PP)');
   is(eval { Net::IDN::Punycode::decode_punycode($label) }, $input,
     $comment.' (decode_punycode round-trips)');
+}
+
+foreach my $test (@stringifies)
+{
+  my ($input, $comment) = @{$test};
+
+  my $string = "$input";
+  eval { Net::IDN::Punycode::decode_punycode($input) };
+  my $from_ref = (split / at /, $@)[0];
+  eval { Net::IDN::Punycode::decode_punycode($string) };
+  my $from_string = (split / at /, $@)[0];
+
+  is($from_ref, $from_string,
+    $comment.' (decode_punycode reads only the stringified value)');
 }

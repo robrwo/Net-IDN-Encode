@@ -206,10 +206,10 @@ decode_punycode(input)
 		STRLEN length_guess, len, h, u8;
 
 	CODE:
-		in_s = in_p = SvPV_nolen(input);
-		in_e = SvEND(input);
+		in_s = in_p = SvPV(input, len);
+		in_e = in_s + len;
 
-		length_guess = SvCUR(input) * 2;
+		length_guess = len * 2;
 		if(length_guess < 256) length_guess = 256;
 
 		RETVAL = NEWSV('D',length_guess);
