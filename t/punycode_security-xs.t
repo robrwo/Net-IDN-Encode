@@ -27,10 +27,10 @@ our @encode_dies = (
 our @decode_dies = (
   ["a-99999999999999999999", qr/exceeds punycode limit/,
     "digit weight overflows"],
-  ["a-8s902716a", qr/exceeds punycode limit/,
-    "delta accumulator overflows"],
+  ["a-8s902716a", qr/invalid code point/,
+    "decodes to the top of the signed 32 bit range"],
   ["a-kk503321e", qr/exceeds punycode limit/,
-    "delta accumulator overflows further"],
+    "delta accumulator overflows"],
   ["a-j023p", qr/invalid code point/,
     "decodes just above U+10FFFF"],
   ["a-8y735a", qr/invalid code point/,
@@ -41,10 +41,16 @@ our @decode_roundtrips = (
   [chr(0x10FFFF) x 125, "decoding outgrows the output buffer"],
 );
 
+our @agree = (
+  [("a" x 1926).chr(0x10FFFF), "delta just below the RFC 3492 limit"],
+  [("a" x 1927).chr(0x10FFFF), "delta above a signed 32 bit limit"],
+);
+
 plan tests => 1
   + 2 * (scalar @encode_dies)
   + 3 * (scalar @decode_dies)
-  + 1 * (scalar @decode_roundtrips);
+  + 1 * (scalar @decode_roundtrips)
+  + 2 * (scalar @agree);
 
 foreach my $test (@encode_dies)
 {
@@ -73,5 +79,16 @@ foreach my $test (@decode_roundtrips)
 
   my $label = Net::IDN::Punycode::PP::encode_punycode($input);
   is(Net::IDN::Punycode::decode_punycode($label), $input,
+    $comment.' (decode_punycode round-trips)');
+}
+
+foreach my $test (@agree)
+{
+  my ($input, $comment) = @{$test};
+
+  my $label = eval { Net::IDN::Punycode::encode_punycode($input) };
+  is($label, Net::IDN::Punycode::PP::encode_punycode($input),
+    $comment.' (encode_punycode matches PP)');
+  is(eval { Net::IDN::Punycode::decode_punycode($label) }, $input,
     $comment.' (decode_punycode round-trips)');
 }

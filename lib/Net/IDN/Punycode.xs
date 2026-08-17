@@ -15,6 +15,7 @@
 #define INITIAL_BIAS 72
 #define INITIAL_N 128
 #define UNICODE_MAX 0x10FFFF
+#define PUNYCODE_MAXINT 0xFFFFFFFFUL
 
 #define isBASE(x) UTF8_IS_INVARIANT((unsigned char)x)
 #define DELIM '-'
@@ -46,7 +47,7 @@ static IV dec_digit[0x80] = {
   15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, /* 70..7F */
 };
 
-static int adapt(int delta, int numpoints, int first) {
+static int adapt(UV delta, UV numpoints, int first) {
   int k;
 
   delta /= first ? DAMP : 2;
@@ -55,7 +56,7 @@ static int adapt(int delta, int numpoints, int first) {
   for(k=0; delta > ((BASE-TMIN) * TMAX)/2; k += BASE)
     delta /= BASE-TMIN;
 
-  return k + (((BASE-TMIN+1) * delta) / (delta+SKEW));
+  return k + (int)(((BASE-TMIN+1) * delta) / (delta+SKEW));
 };
 
 static void
@@ -79,9 +80,9 @@ encode_punycode(input)
 		SV * input
 	PREINIT:
 		UV c, m, n = INITIAL_N;
-		int k, q, t;
+		UV q, delta = 0, skip_delta;
+		int k, t;
 		int bias = INITIAL_BIAS;
-		int delta = 0, skip_delta;
 
 		const char *in_s, *in_p, *in_e, *skip_p;
  		char *re_s, *re_p, *re_e;
@@ -141,14 +142,14 @@ encode_punycode(input)
 
 		  /* increase delta to the state corresponding to
 		     the m code point at the beginning of the string */
-		  if(m - n > (UV)((PERL_INT_MAX - delta) / (h+1)))
+		  if(m - n > (PUNYCODE_MAXINT - delta) / (h+1))
 		    croak("input exceeds punycode limit");
 		  delta += (m-n) * (h+1);
 		  n = m;
 
 		  /* now find the chars to be encoded in this round */
 
-		  if(skip_delta > PERL_INT_MAX - delta)
+		  if(skip_delta > PUNYCODE_MAXINT - delta)
 		    croak("input exceeds punycode limit");
 		  delta += skip_delta;
 		  for(in_p = skip_p; in_p < in_e;) {
@@ -156,7 +157,7 @@ encode_punycode(input)
 		    c = NATIVE_TO_UNI(c);
 
 		    if(c < n) {
-		      if(delta == PERL_INT_MAX) croak("input exceeds punycode limit");
+		      if(delta == PUNYCODE_MAXINT) croak("input exceeds punycode limit");
 		      ++delta;
                     } else if( c == n ) {
 		      q = delta;
@@ -177,7 +178,7 @@ encode_punycode(input)
                     }
 		    in_p += u8;
 		  }
-		  if(delta == PERL_INT_MAX) croak("input exceeds punycode limit");
+		  if(delta == PUNYCODE_MAXINT) croak("input exceeds punycode limit");
 		  ++delta;
 		  ++n;
 		}
@@ -193,7 +194,8 @@ decode_punycode(input)
 	PREINIT:
 		UV c, n = INITIAL_N;
 		IV dc;
-		int i = 0, oldi, j, k, t, w;
+		UV i = 0, oldi, j, w;
+		int k, t;
 
 		int bias = INITIAL_BIAS;
 		int delta = 0, skip_delta;
@@ -243,12 +245,12 @@ decode_punycode(input)
 		    dc = dec_digit[*in_p++];			/* we already know it's in 0..127 */
 		    if(dc < 0) croak("invalid digit in input for decode_punycode");
 		    c = (UV)dc;
-		    if(c > (UV)((PERL_INT_MAX - i) / w))
+		    if(c > (PUNYCODE_MAXINT - i) / w)
 		      croak("input exceeds punycode limit");
 		    i += c * w;
 		    t = TMIN_MAX(k - bias);
 		    if(c < t) break;
-		    if(w > PERL_INT_MAX / (BASE-t))
+		    if(w > PUNYCODE_MAXINT / (BASE-t))
 		      croak("input exceeds punycode limit");
 		    w *= BASE-t;
 		  }
