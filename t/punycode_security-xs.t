@@ -52,7 +52,14 @@ our @stringifies = (
   [\"scalar", "a scalar reference"],
 );
 
+our @encode_malformed = (
+  ["abc\xE2\x82", "a truncated UTF-8 sequence"],
+  ["\xE2\x82abc", "a truncated UTF-8 sequence at the start"],
+  ["abc\xFF", "a byte which starts no UTF-8 sequence"],
+);
+
 plan tests => 1
+  + 1 * (scalar @encode_malformed)
   + 2 * (scalar @encode_dies)
   + 3 * (scalar @decode_dies)
   + 1 * (scalar @decode_roundtrips)
@@ -112,4 +119,26 @@ foreach my $test (@stringifies)
 
   is($from_ref, $from_string,
     $comment.' (decode_punycode reads only the stringified value)');
+}
+
+foreach my $test (@encode_malformed)
+{
+  my ($bytes, $comment) = @{$test};
+
+  SKIP: {
+    my $pid = fork;
+    skip 'cannot fork', 1 if !defined $pid;
+
+    if (!$pid) {
+      close STDERR;
+      require Encode;
+      Encode::_utf8_on($bytes);
+      alarm 10;
+      eval { Net::IDN::Punycode::encode_punycode($bytes) };
+      exit 0;
+    }
+
+    waitpid($pid, 0);
+    is($? & 127, 0, $comment.' (encode_punycode terminates)');
+  }
 }

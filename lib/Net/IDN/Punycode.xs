@@ -126,6 +126,8 @@ encode_punycode(input)
 
 		  for(in_p = skip_p = in_s; in_p < in_e;) {
 		    c = utf8_to_uvchr_buf((U8*)in_p, (U8*)in_e, &u8);
+		    if(u8 == (STRLEN)-1)
+		      croak("malformed UTF-8 in input for encode_punycode");
 		    c = NATIVE_TO_UNI(c);
 
 		    if(c >= n && c < m) {
@@ -154,6 +156,8 @@ encode_punycode(input)
 		  delta += skip_delta;
 		  for(in_p = skip_p; in_p < in_e;) {
 		    c = utf8_to_uvchr_buf((U8*)in_p, (U8*)in_e, &u8);
+		    if(u8 == (STRLEN)-1)
+		      croak("malformed UTF-8 in input for encode_punycode");
 		    c = NATIVE_TO_UNI(c);
 
 		    if(c < n) {
