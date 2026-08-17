@@ -21,6 +21,7 @@ t/domain_to_ascii.t
 t/domain_to_unicode.t
 t/encode_bytes.t
 t/encode_utf8.t
+t/punycode_leak-xs.t
 t/punycode_security-xs.t
 t/punycode_vec-pp.t
 t/punycode_vec-xs.t

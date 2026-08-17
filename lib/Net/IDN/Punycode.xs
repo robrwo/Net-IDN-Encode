@@ -73,6 +73,13 @@ grow_string(SV *const sv, char **start, char **current, char **end, STRLEN add)
   *end = *start + SvLEN(sv);
 }
 
+static void
+croak_free(SV *sv, const char *msg)
+{
+  SvREFCNT_dec(sv);
+  croak("%s", msg);
+}
+
 MODULE = Net::IDN::Punycode PACKAGE = Net::IDN::Punycode
 
 SV*
@@ -127,7 +134,7 @@ encode_punycode(input)
 		  for(in_p = skip_p = in_s; in_p < in_e;) {
 		    c = utf8_to_uvchr_buf((U8*)in_p, (U8*)in_e, &u8);
 		    if(u8 == (STRLEN)-1)
-		      croak("malformed UTF-8 in input for encode_punycode");
+		      croak_free(RETVAL, "malformed UTF-8 in input for encode_punycode");
 		    c = NATIVE_TO_UNI(c);
 
 		    if(c >= n && c < m) {
@@ -145,23 +152,23 @@ encode_punycode(input)
 		  /* increase delta to the state corresponding to
 		     the m code point at the beginning of the string */
 		  if(m - n > (PUNYCODE_MAXINT - delta) / (h+1))
-		    croak("input exceeds punycode limit");
+		    croak_free(RETVAL, "input exceeds punycode limit");
 		  delta += (m-n) * (h+1);
 		  n = m;
 
 		  /* now find the chars to be encoded in this round */
 
 		  if(skip_delta > PUNYCODE_MAXINT - delta)
-		    croak("input exceeds punycode limit");
+		    croak_free(RETVAL, "input exceeds punycode limit");
 		  delta += skip_delta;
 		  for(in_p = skip_p; in_p < in_e;) {
 		    c = utf8_to_uvchr_buf((U8*)in_p, (U8*)in_e, &u8);
 		    if(u8 == (STRLEN)-1)
-		      croak("malformed UTF-8 in input for encode_punycode");
+		      croak_free(RETVAL, "malformed UTF-8 in input for encode_punycode");
 		    c = NATIVE_TO_UNI(c);
 
 		    if(c < n) {
-		      if(delta == PUNYCODE_MAXINT) croak("input exceeds punycode limit");
+		      if(delta == PUNYCODE_MAXINT) croak_free(RETVAL, "input exceeds punycode limit");
 		      ++delta;
                     } else if( c == n ) {
 		      q = delta;
@@ -173,7 +180,7 @@ encode_punycode(input)
 			*re_p++ = enc_digit[t + ((q-t) % (BASE-t))];
 		        q = (q-t) / (BASE-t);
   		      }
-		      if(q >= BASE) croak("input exceeds punycode limit");
+		      if(q >= BASE) croak_free(RETVAL, "input exceeds punycode limit");
 		      grow_string(RETVAL, &re_s, &re_p, &re_e, sizeof(char));
 	              *re_p++ = enc_digit[q];
 		      bias = adapt(delta, h+1, first);
@@ -182,7 +189,7 @@ encode_punycode(input)
                     }
 		    in_p += u8;
 		  }
-		  if(delta == PUNYCODE_MAXINT) croak("input exceeds punycode limit");
+		  if(delta == PUNYCODE_MAXINT) croak_free(RETVAL, "input exceeds punycode limit");
 		  ++delta;
 		  ++n;
 		}
@@ -224,7 +231,7 @@ decode_punycode(input)
 		skip_p = NULL;
 		for(in_p = in_s; in_p < in_e; in_p++) {
 		  c = *in_p;					/* we don't care whether it's UTF-8 */
-		  if(!isBASE(c)) croak("non-base character in input for decode_punycode");
+		  if(!isBASE(c)) croak_free(RETVAL, "non-base character in input for decode_punycode");
 		  if(c == DELIM) skip_p = in_p;
 		  grow_string(RETVAL, &re_s, &re_p, &re_e, 1);
 		  *re_p++ = c;					/* copy it */
@@ -245,17 +252,17 @@ decode_punycode(input)
 		  w = 1;
 
 	          for(k = BASE;; k+= BASE) {
-		    if(!(in_p < in_e)) croak("incomplete encoded code point in decode_punycode");
+		    if(!(in_p < in_e)) croak_free(RETVAL, "incomplete encoded code point in decode_punycode");
 		    dc = dec_digit[*in_p++];			/* we already know it's in 0..127 */
-		    if(dc < 0) croak("invalid digit in input for decode_punycode");
+		    if(dc < 0) croak_free(RETVAL, "invalid digit in input for decode_punycode");
 		    c = (UV)dc;
 		    if(c > (PUNYCODE_MAXINT - i) / w)
-		      croak("input exceeds punycode limit");
+		      croak_free(RETVAL, "input exceeds punycode limit");
 		    i += c * w;
 		    t = TMIN_MAX(k - bias);
 		    if(c < t) break;
 		    if(w > PUNYCODE_MAXINT / (BASE-t))
-		      croak("input exceeds punycode limit");
+		      croak_free(RETVAL, "input exceeds punycode limit");
 		    w *= BASE-t;
 		  }
 		  h++;
@@ -263,7 +270,7 @@ decode_punycode(input)
 		  first = 0;
 		  n += i / h;					/* code point n to insert */
 	          i = i % h;					/* at position i */
-		  if(n > UNICODE_MAX) croak("invalid code point");
+		  if(n > UNICODE_MAX) croak_free(RETVAL, "invalid code point");
 
 		  u8 = UNISKIP(n);				/* how many bytes we need */
 
