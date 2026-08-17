@@ -212,38 +212,36 @@ decode_punycode(input)
 		int delta = 0, skip_delta;
 
 		const char *in_s, *in_p, *in_e, *skip_p;
-		char *re_s, *re_p, *re_e;
+		char *re_s, *re_p;
 		int first = 1;
-		STRLEN length_guess, len, h, u8;
+		STRLEN len, h, total;
+		UV *cp_s;
+		SV *cp_sv;
 
 	CODE:
 		in_s = in_p = SvPV(input, len);
 		in_e = in_s + len;
 
-		length_guess = len * 2;
-		if(length_guess < 256) length_guess = 256;
-
-		RETVAL = NEWSV('D',length_guess);
+		RETVAL = NEWSV('D', len + 1);
 		SvPOK_only(RETVAL);
-		re_s = re_p = SvPV_nolen(RETVAL);
-		re_e = re_s + SvLEN(RETVAL);
+
+		cp_sv = sv_2mortal(newSV((len + 1) * sizeof(UV)));
+		cp_s = (UV*)SvPVX(cp_sv);
 
 		skip_p = NULL;
 		for(in_p = in_s; in_p < in_e; in_p++) {
 		  c = *in_p;					/* we don't care whether it's UTF-8 */
 		  if(!isBASE(c)) croak_free(RETVAL, "non-base character in input for decode_punycode");
 		  if(c == DELIM) skip_p = in_p;
-		  grow_string(RETVAL, &re_s, &re_p, &re_e, 1);
-		  *re_p++ = c;					/* copy it */
 		}
 
 		if(skip_p) {
 		  h = skip_p - in_s;				/* base chars handled */
-		  re_p = re_s + h;				/* points to end of base chars */
+		  for(j = 0; j < h; j++)
+		    cp_s[j] = (unsigned char)in_s[j];		/* copy them */
 		  skip_p++;					/* skip over DELIM */
                 } else {
 		  h = 0;					/* no base chars */
-		  re_p = re_s;
 		  skip_p = in_s;				/* read everything */
 		}
 
@@ -272,22 +270,20 @@ decode_punycode(input)
 	          i = i % h;					/* at position i */
 		  if(n > UNICODE_MAX) croak_free(RETVAL, "invalid code point");
 
-		  u8 = UNISKIP(n);				/* how many bytes we need */
-
-		  grow_string(RETVAL, &re_s, &re_p, &re_e, u8);
-
-		  j = i;
-		  for(skip_p = re_s; j > 0; j--) 		/* find position in UTF-8 */
-		    skip_p+=UTF8SKIP(skip_p);
-
-		  if(skip_p < re_p)				/* move succeeding chars */
-		    Move(skip_p, skip_p + u8, re_p - skip_p, char);
-		  re_p += u8;
-		  uvchr_to_utf8_flags((U8*)skip_p, n, UNICODE_ALLOW_ANY);
+		  if(i < h-1)					/* move succeeding chars */
+		    Move(cp_s + i, cp_s + i + 1, (h-1) - i, UV);
+		  cp_s[i] = n;
 		}
 
+		total = 0;
+		for(j = 0; j < h; j++)
+		  total += UNISKIP(cp_s[j]);
+
+		re_s = re_p = SvGROW(RETVAL, total + 1);
+		for(j = 0; j < h; j++)
+		  re_p = (char*)uvchr_to_utf8_flags((U8*)re_p, cp_s[j], UNICODE_ALLOW_ANY);
+
 		if(!first) SvUTF8_on(RETVAL);			/* UTF-8 chars have been inserted */
-		grow_string(RETVAL, &re_s, &re_p, &re_e, 1);
 		*re_p = 0;
 		SvCUR_set(RETVAL, re_p - re_s);
 	OUTPUT:
