@@ -242,9 +242,13 @@ decode_punycode(input)
 		    dc = dec_digit[*in_p++];			/* we already know it's in 0..127 */
 		    if(dc < 0) croak("invalid digit in input for decode_punycode");
 		    c = (UV)dc;
+		    if(c > (UV)((PERL_INT_MAX - i) / w))
+		      croak("input exceeds punycode limit");
 		    i += c * w;
 		    t = TMIN_MAX(k - bias);
 		    if(c < t) break;
+		    if(w > PERL_INT_MAX / (BASE-t))
+		      croak("input exceeds punycode limit");
 		    w *= BASE-t;
 		  }
 		  h++;
