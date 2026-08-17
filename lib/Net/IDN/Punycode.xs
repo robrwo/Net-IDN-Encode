@@ -14,6 +14,7 @@
 #define DAMP 700
 #define INITIAL_BIAS 72
 #define INITIAL_N 128
+#define UNICODE_MAX 0x10FFFF
 
 #define isBASE(x) UTF8_IS_INVARIANT((unsigned char)x)
 #define DELIM '-'
@@ -256,6 +257,7 @@ decode_punycode(input)
 		  first = 0;
 		  n += i / h;					/* code point n to insert */
 	          i = i % h;					/* at position i */
+		  if(n > UNICODE_MAX) croak("invalid code point");
 
 		  u8 = UNISKIP(n);				/* how many bytes we need */
 

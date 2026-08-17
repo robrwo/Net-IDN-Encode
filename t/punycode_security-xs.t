@@ -31,6 +31,10 @@ our @decode_dies = (
     "delta accumulator overflows"],
   ["a-kk503321e", qr/exceeds punycode limit/,
     "delta accumulator overflows further"],
+  ["a-j023p", qr/invalid code point/,
+    "decodes just above U+10FFFF"],
+  ["a-8y735a", qr/invalid code point/,
+    "decodes far above U+10FFFF"],
 );
 
 our @decode_roundtrips = (
