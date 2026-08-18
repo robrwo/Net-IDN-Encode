@@ -22,9 +22,13 @@ use Test::NoWarnings;
 our @encode_dies = (
   ["a".chr(0xFFFFFFFF), qr/exceeds punycode limit/,
     "encoding overflows the delta accumulator"],
+  [("a" x 4368).chr(983183), qr/exceeds punycode limit/,
+    "the skipped basic code points overflow the delta accumulator"],
 );
 
 our @decode_dies = (
+  ["\x80", qr/non-base character/,
+    "a byte outside the basic code points"],
   ["a-99999999999999999999", qr/exceeds punycode limit/,
     "digit weight overflows"],
   ["a-8s902716a", qr/invalid code point/,
