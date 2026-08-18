@@ -163,11 +163,11 @@ encode_punycode(input)
 		  delta += skip_delta;
 		  for(in_p = skip_p; in_p < in_e;) {
 		    c = utf8_to_uvchr_buf((U8*)in_p, (U8*)in_e, &u8);
-		    if(u8 == (STRLEN)-1)
-		      croak_free(RETVAL, "malformed UTF-8 in input for encode_punycode");
+		    assert(u8 != (STRLEN)-1);		/* the scan above rejected these */
 		    c = NATIVE_TO_UNI(c);
 
 		    if(c < n) {
+		      /* delta resets at c == n, so reaching this takes PUNYCODE_MAXINT characters */
 		      if(delta == PUNYCODE_MAXINT) croak_free(RETVAL, "input exceeds punycode limit");
 		      ++delta;
                     } else if( c == n ) {
@@ -180,7 +180,7 @@ encode_punycode(input)
 			*re_p++ = enc_digit[t + ((q-t) % (BASE-t))];
 		        q = (q-t) / (BASE-t);
   		      }
-		      if(q >= BASE) croak_free(RETVAL, "input exceeds punycode limit");
+		      assert(q < BASE);			/* the loop above exits on q < t <= TMAX */
 		      grow_string(RETVAL, &re_s, &re_p, &re_e, sizeof(char));
 	              *re_p++ = enc_digit[q];
 		      bias = adapt(delta, h+1, first);
@@ -189,6 +189,7 @@ encode_punycode(input)
                     }
 		    in_p += u8;
 		  }
+		  /* delta resets at c == n, so reaching this takes PUNYCODE_MAXINT characters */
 		  if(delta == PUNYCODE_MAXINT) croak_free(RETVAL, "input exceeds punycode limit");
 		  ++delta;
 		  ++n;
@@ -259,8 +260,7 @@ decode_punycode(input)
 		    i += c * w;
 		    t = TMIN_MAX(k - bias);
 		    if(c < t) break;
-		    if(w > PUNYCODE_MAXINT / (BASE-t))
-		      croak_free(RETVAL, "input exceeds punycode limit");
+		    assert(w <= PUNYCODE_MAXINT / (BASE-t));	/* the c*w guard above and bias <= 204 bound w */
 		    w *= BASE-t;
 		  }
 		  h++;
