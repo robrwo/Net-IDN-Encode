@@ -19,6 +19,7 @@ NFC
 NFD
 Nameprep
 Punycode
+Rothenberg
 SRV
 STD
 Tatsuhiko Miyagawa
