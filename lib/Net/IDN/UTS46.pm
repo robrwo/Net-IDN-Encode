@@ -194,13 +194,13 @@ sub _validate_bidi {
   my($l,%param) = @_;
   no warnings 'utf8';
 
-  return 1 unless length($l); 
+  return 1 unless length($l);
 
   if( $l =~ m/^[$_RE_BidiClass_L]/o ) { # LTR (left-to-right)
     $l =~ m/[^$_RE_BidiClass_L\p{Bc:EN}\p{Bc:ES}\p{Bc:CS}\p{Bc:ET}\p{Bc:BN}\p{Bc:ON}\p{Bc:NSM}]/o and croak 'contains characters with wrong bidi class for LTR [B5]';
     $l =~ m/[$_RE_BidiClass_L\p{Bc:EN}][\p{Bc:NSM}\P{Assigned}]*$/o or croak 'ends with character of wrong bidi class for LTR [B6]';
     return 1;
-  } 
+  }
 
   if( $l =~ m/^[\p{Bc:R}\p{Bc:AL}]/ ) { # RTL (right-to-left)
     $l =~ m/[^\p{Bc:R}\p{Bc:AL}\p{Bc:AN}\p{Bc:EN}\p{Bc:ES}\p{Bc:CS}\p{Bc:ET}\p{Bc:ON}\p{Bc:BN}\p{Bc:NSM}]/ and croak 'contains characters with wrong bidi class for RTL [B2]';
@@ -237,7 +237,7 @@ sub _validate_contextj {
 # RFC 5892, Appendix A.1. ZERO WIDTH NON-JOINER
 #    Code point:
 #       U+200C
-# 
+#
 #    Overview:
 #       This may occur in a formally cursive script (such as Arabic) in a
 #       context where it breaks a cursive connection as required for
@@ -245,8 +245,8 @@ sub _validate_contextj {
 #       also may occur in Indic scripts in a consonant-conjunct context
 #       (immediately following a virama), to control required display of
 #       such conjuncts.
-# 
-# 
+#
+#
 #    Lookup:
 #       True
 #
@@ -271,12 +271,12 @@ sub _validate_contextj {
 #
 #    Code point:
 #       U+200D
-# 
+#
 #    Overview:
 #       This may occur in Indic scripts in a consonant-conjunct context
 #       (immediately following a virama), to control required display of
 #       such conjuncts.
-# 
+#
 #    Lookup:
 #       True
 
@@ -307,7 +307,7 @@ Net::IDN::UTS46 - Unicode IDNA Compatibility Processing (S<UTS #46>)
   use Net::IDN:: ':all';
   my $a = uts46_to_ascii("müller.example.org");
   my $b = Net::IDN::UTS46::to_unicode('EXAMPLE.XN--11B5BS3A9AJ6G');
-  
+
   $domain =~ m/\P{Net::IDN::UTS46::IsDisallowed} and die 'oops';
 
 =head1 DESCRIPTION
@@ -326,11 +326,11 @@ is used internally, you should use L<Net::IDN::Encode> instead.
 =head1 FUNCTIONS
 
 By default, this module does not export any subroutines. You may use the
-C<:all> tag to import everything. 
+C<:all> tag to import everything.
 
 You can omit the C<'uts46_'> prefix when accessing the functions with a
 full-qualified module name (e.g. you can access C<uts46_to_unicode> as
-C<Net::IDN::UTS46::uts46_to_unicode> or C<Net::IDN::UTS46::to_unicode>. 
+C<Net::IDN::UTS46::uts46_to_unicode> or C<Net::IDN::UTS46::to_unicode>.
 
 The following functions are available:
 

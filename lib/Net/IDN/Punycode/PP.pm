@@ -81,7 +81,7 @@ sub decode_punycode {
 	    my $cp = substr($code, 0, 1, '');
 	    croak("incomplete encoded code point in decode_punycode") if !defined $cp;
 	    my $digit = ord $cp;
-		
+
 	    ## NB: this depends on the PunyRE catching invalid digit characters
 	    ## before they turn up here
 	    ##

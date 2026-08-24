@@ -9,7 +9,7 @@ Net::IDN::Overwiew - Internationalized Domain Names for Applications (IDNA)
 The C<Net::IDN::*> modules provide a framework for the handling of
 Internationalized Domain Names for Applications (IDNA) in perl programmes.
 
-This document provides an overview of the available modules in order to 
+This document provides an overview of the available modules in order to
 allow you to choose the best module for the task at hand.
 
 =head2 AVAILABLE MODULES
@@ -21,7 +21,7 @@ allow you to choose the best module for the task at hand.
 =item L<Net::IDN::Encode>
 
 provides a high-level interface for converting domain names (and
-for convenience, email addresses).  
+for convenience, email addresses).
 
 Use this module if you just want to convert domain names and don't
 care about how this is done internally.
@@ -56,7 +56,7 @@ and related documents.
 =item L<Net::IDN::IDNA2008>
 
 implements the current IDNA specification, released in early 2010
-(IDNA2008 or IDNAbis). 
+(IDNA2008 or IDNAbis).
 
 Please note that this module will not allow you to convert some
 domain names, such as C<√.com> or C<I♥NY.com>, which were allowed
@@ -72,7 +72,7 @@ and related documents.
 implements Unicode Technical Standard #46 (UTS #46
 L<http://unicode.org/reports/tr46/>), Unicode IDNA Compatibility
 Processing.  This specification supports all domain names allowed
-under either IDNA2003 or IDNA2008. 
+under either IDNA2003 or IDNA2008.
 
 =back
 
@@ -127,7 +127,7 @@ converting domain names between ASCII and Unicode.
 
 The author tries to keep the dependency chain as small as possible; currently
 this distribution only depends on perl 5.8.5 (including the core module
-L<Unicode::Normalize> ). 
+L<Unicode::Normalize> ).
 
 =item Net-IDN-IDNA2003
 

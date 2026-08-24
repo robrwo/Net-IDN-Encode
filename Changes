@@ -65,7 +65,7 @@ Revision history for Perl extension Net::IDN::Encode
 
 2.100 2013-12-30
 	- Net::IDN::Encode: preserve case in pure-ASCII labels (bypass
-	  en-/decoding) 
+	  en-/decoding)
 	  FIXES: #91059: case not preserved (reported by DMUEY)
 	- Net::IDN::Encode: simplify scalar-via-blob syntax (pull req.
 	  by DMUEY)
@@ -73,7 +73,7 @@ Revision history for Perl extension Net::IDN::Encode
 	  @ signs (pull req. by DMUEY)
 
 	- Net::IDN::UTS46: update to Unicode® 6.3.0 and UTS #46 r11:
-	  * new UTS #46 test vectors in data/IdnaTest.txt 
+	  * new UTS #46 test vectors in data/IdnaTest.txt
 	  * built on perl-blead (5.19.7) for support of Unicode® 6.3.0
 	    in tests generated from data/IdnaTest.txt
 	  * tweaks and fixes regarding edge cases not clearly described
@@ -93,7 +93,7 @@ Revision history for Perl extension Net::IDN::Encode
 	  (reported by cstamas@*****.hu)
 
 2.004 2013-08-12
-	- FIXES: #85552 3 uts46 tests FAIL under perl-5.18.0	
+	- FIXES: #85552 3 uts46 tests FAIL under perl-5.18.0
 	  (reported by d.thomas@*****.au)
 
 2.003 2012-01-22

@@ -21,7 +21,7 @@ my $b = Module::Build->new(
 		'perl'	=> 5.008005,
 	},
 	'test_requires' => {
-		'Test::More' => 0, 
+		'Test::More' => 0,
 		'Test::NoWarnings' => 0,
 	},
 	'needs_compiler' => undef,
@@ -30,7 +30,7 @@ my $b = Module::Build->new(
 		'lib/Unicode/UTS46/_Mapping.PL'  => [
 			 'lib/Net/IDN/UTS46/_Mapping.pm',
 		],
-		'lib/Unicode/UTS46/GenTests.PL'	 => [	
+		'lib/Unicode/UTS46/GenTests.PL'	 => [
 			't/uts46_to_ascii.t',
 			't/uts46_to_ascii-trans.t',
  			't/uts46_to_unicode.t',

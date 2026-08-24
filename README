@@ -6,7 +6,7 @@ OVERVIEW
   Net::IDN::UTS46    --	Unicode IDNA Compatibility Processing
 			(UTS #46)
 
-  Net::IDN::Punycode -- ASCII-compatible encoding of Unicode 
+  Net::IDN::Punycode -- ASCII-compatible encoding of Unicode
   			(Punycode, RFC 3492)
 
 INSTALLATION
