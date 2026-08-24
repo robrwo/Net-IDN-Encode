@@ -9,7 +9,7 @@ use warnings;
 use Carp;
 use Exporter;
 
-our $VERSION = "2.501";
+our $VERSION = "2.502";
 
 our @ISA = qw(Exporter);
 our @EXPORT = ();
