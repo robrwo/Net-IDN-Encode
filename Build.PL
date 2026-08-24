@@ -12,7 +12,7 @@ my $b = Module::Build->new(
 	'dist_author'	=> [ 'Claus Färber', 'Robert Rothenberg <perl@rhizomnic.com>', 'Paul Johnson <paul@pjcj.net>' ],
 	'dist_abstract' => 'Internationalizing Domain Names in Applications (UTS #46)',
 
-	'sign'		=> 1,
+	'sign'		=> 0,
 	'create_license' => 1,
 	'create_makefile_pl' => 'traditional',
 

@@ -5,6 +5,7 @@ Revision history for Perl extension Net::IDN::Encode
         - update the maintainer information.
         - update the copyright year.
         - add contributors to ACKNOWLEDGMENTS in the README.
+        - stop signing releases with Module::Signature.
 
 2.501 2024-01-12 (TRIAL RELEASE)
         - apply patch from PR #11 (use uvchr_to_utf8_flags instead of
