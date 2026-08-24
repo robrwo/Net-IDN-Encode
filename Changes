@@ -3,6 +3,7 @@ Revision history for Perl extension Net::IDN::Encode
         - apply fix from Karen Etheridge's 2.501 release.
         - Update the maintainer information.
         - Update the copyright year.
+        - add contributors to ACKNOWLEDGMENTS in the README.
 
 2.501 2024-01-12 (TRIAL RELEASE)
         - apply patch from PR #11 (use uvchr_to_utf8_flags instead of
