@@ -93,4 +93,6 @@ prior to registration (be conservative in what you send).
 
 Claus FE<auml>rber <CFAERBER@cpan.org>
 
+Currently maintained by Robert Rothenberg <perl@rhizomnic.com> and Paul Johnson <paul@pjcj.net>.
+
 =cut

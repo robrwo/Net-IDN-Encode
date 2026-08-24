@@ -435,11 +435,15 @@ The code point is not allowed in UTS #46 if C<UseSTDASCIIRules> are used but wo
 
 =head1 AUTHOR
 
-Claus FE<auml>rber <CFAERBER@cpan.org>
+Claus FE<auml>rber
+
+Currently maintained by Robert Rothenberg <perl@rhizomnic.com> and Paul Johnson <paul@pjcj.net>.
 
 =head1 LICENSE
 
 Copyright 2011-2018 Claus FE<auml>rber.
+
+Parts copyright 2026 Robert Rothenberg <perl@rhizomnic.com> and Paul Johnson <paul@pjcj.net>.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

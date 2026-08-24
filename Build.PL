@@ -9,7 +9,7 @@ my $b = Module::Build->new(
 	'module_name'	=> 'Net::IDN::Encode',
 
 	'license'	=> 'perl',
-	'dist_author'	=> 'Claus Färber <CFAERBER@cpan.org>',
+	'dist_author'	=> [ 'Claus Färber', 'Robert Rothenberg <perl@rhizomnic.com>', 'Paul Johnson <paul@pjcj.net>' ],
 	'dist_abstract' => 'Internationalizing Domain Names in Applications (UTS #46)',
 
 	'sign'		=> 1,
@@ -43,7 +43,7 @@ my $b = Module::Build->new(
 		'resources' => {
 			'homepage' => 'https://metacpan.org/release/Net-IDN-Encode',
 			'bugtracker' => 'https://rt.cpan.org/Public/Dist/Display.html?Name=Net-IDN-Encode',
-			'repository' => 'http://github.com/cfaerber/Net-IDN-Encode',
+			'repository' => 'http://github.com/robrwo/Net-IDN-Encode',
 		},
 	},
         release_status => 'unstable',

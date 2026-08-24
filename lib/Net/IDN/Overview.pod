@@ -155,6 +155,8 @@ user/perl programmer.
 
 =head1 AUTHOR
 
-Claus FE<auml>rber <CFAERBER@cpan.org>
+Claus FE<auml>rber
+
+Currently maintained by Robert Rothenberg <perl@rhizomnic.com> and Paul Johnson <paul@pjcj.net>.
 
 =cut

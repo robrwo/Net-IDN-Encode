@@ -96,15 +96,19 @@ This function will throw an exception on invalid input.
 
 =head1 AUTHORS
 
-Tatsuhiko Miyagawa E<lt>miyagawa@bulknews.netE<gt> (versions 0.01 to 0.02)
+Tatsuhiko Miyagawa (versions 0.01 to 0.02)
 
-Claus FE<auml>rber E<lt>CFAERBER@cpan.orgE<gt> (versions 1.000 and higher)
+Claus FE<auml>rber (versions 1.000 and higher)
+
+Currently maintained by Robert Rothenberg <perl@rhizomnic.com> and Paul Johnson <paul@pjcj.net>.
 
 =head1 LICENSE
 
-Copyright 2002-2004 Tatsuhiko Miyagawa E<lt>miyagawa@bulknews.netE<gt>
+Copyright 2002-2004 Tatsuhiko Miyagawa
 
-Copyright 2007-2014 Claus FE<auml>rber E<lt>CFAERBER@cpan.orgE<gt>
+Copyright 2007-2018 Claus FE<auml>rber
+
+Parts copyright 2026 Robert Rothenberg <perl@rhizomnic.com> and Paul Johnson <paul@pjcj.net>.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

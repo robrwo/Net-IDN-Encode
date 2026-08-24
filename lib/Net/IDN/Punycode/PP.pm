@@ -178,11 +178,15 @@ Tatsuhiko Miyagawa E<lt>miyagawa@bulknews.netE<gt> (versions 0.01 to 0.02)
 
 Claus FE<auml>rber E<lt>CFAERBER@cpan.orgE<gt> (from version 1.00)
 
+Currently maintained by Robert Rothenberg <perl@rhizomnic.com> and Paul Johnson <paul@pjcj.net>.
+
 =head1 LICENSE
 
-Copyright 2002-2004 Tatsuhiko Miyagawa E<lt>miyagawa@bulknews.netE<gt>
+Copyright 2002-2004 Tatsuhiko Miyagawa
 
-Copyright 2007-2018 Claus FE<auml>rber E<lt>CFAERBER@cpan.orgE<gt>
+Copyright 2007-2018 Claus FE<auml>rber
+
+Parts copyright 2026 Robert Rothenberg <perl@rhizomnic.com> and Paul Johnson <paul@pjcj.net>.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
