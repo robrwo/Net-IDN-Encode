@@ -1,5 +1,6 @@
 Revision history for Perl extension Net::IDN::Encode
 
+        - apply fix from Karen Etheridge's 2.501 release.
         - Update the maintainer information.
         - Update the copyright year.
 
