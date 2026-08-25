@@ -117,8 +117,8 @@ Net::IDN::Encode - Internationalizing Domain Names in Applications (IDNA)
 =head1 SYNOPSIS
 
   use Net::IDN::Encode ':all';
-  my $a = domain_to_ascii("müller.example.org");
-  my $e = email_to_ascii("POSTMASTER@例。テスト");
+  my $a = domain_to_ascii('müller.example.org');
+  my $e = email_to_ascii('POSTMASTER@例。テスト');
   my $u = domain_to_unicode('EXAMPLE.XN--11B5BS3A9AJ6G');
 
 =head1 DESCRIPTION
