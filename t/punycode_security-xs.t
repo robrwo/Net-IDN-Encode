@@ -39,6 +39,10 @@ our @decode_dies = (
     "decodes just above U+10FFFF"],
   ["a-8y735a", qr/invalid code point/,
     "decodes far above U+10FFFF"],
+  ["xw902716a", qr/invalid code point/,
+    "wraps a 32 bit code point accumulator to NUL"],
+  ["8x902716a", qr/invalid code point/,
+    "wraps a 32 bit code point accumulator to a label separator"],
 );
 
 our @decode_roundtrips = (

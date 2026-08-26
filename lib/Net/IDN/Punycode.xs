@@ -273,9 +273,10 @@ decode_punycode(input)
 		  h++;
 		  bias = adapt(i-oldi, h, first);
 		  first = 0;
+		  if(i / h > UNICODE_MAX - n)			/* adding first wraps a 32-bit UV */
+		    croak_free(RETVAL, "invalid code point");
 		  n += i / h;					/* code point n to insert */
 	          i = i % h;					/* at position i */
-		  if(n > UNICODE_MAX) croak_free(RETVAL, "invalid code point");
 
 		  if(i < h-1)					/* move succeeding chars */
 		    Move(cp_s + i, cp_s + i + 1, (h-1) - i, UV);
