@@ -30,6 +30,10 @@
 #define uvchr_to_utf8_flags(d, uv, flags) uvuni_to_utf8_flags(d, uv, flags);
 #endif
 
+#ifndef MEM_SIZE_MAX
+#define MEM_SIZE_MAX ((MEM_SIZE)-1)
+#endif
+
 static char enc_digit[BASE] = {
   'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
   'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -222,6 +226,9 @@ decode_punycode(input)
 	CODE:
 		in_s = in_p = SvPV(input, len);
 		in_e = in_s + len;
+
+		if(len > MEM_SIZE_MAX / sizeof(UV) - 1)
+		  croak("input too long for decode_punycode");
 
 		RETVAL = NEWSV('D', len + 1);
 		SvPOK_only(RETVAL);
