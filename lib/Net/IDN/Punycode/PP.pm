@@ -26,8 +26,8 @@ use constant DAMP => 700;
 use constant INITIAL_BIAS => 72;
 use constant INITIAL_N => 128;
 
-use constant UNICODE_MIN => 0;
 use constant UNICODE_MAX => 0x10FFFF;
+use constant PUNYCODE_MAXINT => 0xFFFFFFFF;
 
 my $Delimiter = chr 0x2D;
 my $BasicRE   = "\x00-\x7f";
@@ -67,6 +67,8 @@ sub decode_punycode {
     }
     my $code = $input;
 
+    croak("non-base character in input for decode_punycode")
+      if $code =~ m/[^$BasicRE]/os;
     croak('invalid digit in input for decode_punycode') if $code =~ m/[^$PunyRE]/os;
 
     utf8::downgrade($input);	## handling failure of downgrade is more expensive than
@@ -87,6 +89,8 @@ sub decode_punycode {
 	    ##
 	    $digit = $digit < 0x40 ? $digit + (26-0x30) : ($digit & 0x1f) -1;
 
+            croak("input exceeds punycode limit")
+              if $digit > ( PUNYCODE_MAXINT - $i ) / $w;
 	    $i += $digit * $w;
 	    my $t =  $k - $bias;
 	    $t = $t < TMIN ? TMIN : $t > TMAX ? TMAX : $t;
@@ -95,9 +99,9 @@ sub decode_punycode {
 	    $w *= (BASE - $t);
 	}
 	$bias = _adapt($i - $oldi, @output + 1, $oldi == 0);
+        croak('invalid code point') if $i / ( @output + 1 ) > UNICODE_MAX - $n;
 	$n += $i / (@output + 1);
 	$i = $i % (@output + 1);
-	croak('invalid code point') if $n < UNICODE_MIN or $n > UNICODE_MAX;
 	splice(@output, $i, 0, chr($n));
 	$i++;
     }
@@ -127,12 +131,18 @@ sub encode_punycode {
 
     foreach my $m (@chars) {
  	next if $m < $n;
+	croak("input exceeds punycode limit")
+	  if $m - $n > (PUNYCODE_MAXINT - $delta) / ($h + 1);
 	$delta += ($m - $n) * ($h + 1);
 	$n = $m;
 	for(my $i = 0; $i < $input_length; $i++)
 	{
 	    my $c = $input[$i];
-	    $delta++ if $c < $n;
+	    if ($c < $n) {
+		croak("input exceeds punycode limit")
+		  if $delta == PUNYCODE_MAXINT;
+		$delta++;
+	    }
 	    if ($c == $n) {
 		my $q = $delta;
 	    LOOP:
@@ -147,7 +157,7 @@ sub encode_punycode {
 
 		    $q = int(($q - $t) / (BASE - $t));
 		}
-		croak("input exceeds punycode limit") if $q > BASE;
+		croak("input exceeds punycode limit") if $q >= BASE;
                 $output .= chr $q + ($q < 26 ? 0x61 : 0x30-26);
 
 		$bias = _adapt($delta, $h + 1, $h == $bb);
@@ -155,6 +165,7 @@ sub encode_punycode {
 		$h++;
 	    }
 	}
+        croak("input exceeds punycode limit") if $delta == PUNYCODE_MAXINT;
 	$delta++;
 	$n++;
     }

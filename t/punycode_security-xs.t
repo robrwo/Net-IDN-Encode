@@ -24,6 +24,8 @@ our @encode_dies = (
     "encoding overflows the delta accumulator"],
   [("a" x 4368).chr(983183), qr/exceeds punycode limit/,
     "the skipped basic code points overflow the delta accumulator"],
+  [("a" x 3855).chr(0x10FFFF), qr/exceeds punycode limit/,
+    "a long basic prefix overflows the delta accumulator"],
 );
 
 our @decode_dies = (
@@ -43,6 +45,8 @@ our @decode_dies = (
     "wraps a 32 bit code point accumulator to NUL"],
   ["8x902716a", qr/invalid code point/,
     "wraps a 32 bit code point accumulator to a label separator"],
+  [("a" x 3900)."-2x485856a", qr/exceeds punycode limit/,
+    "a label only an unguarded encoder could produce"],
 );
 
 our @decode_roundtrips = (
@@ -52,6 +56,7 @@ our @decode_roundtrips = (
 our @agree = (
   [("a" x 1926).chr(0x10FFFF), "delta just below the RFC 3492 limit"],
   [("a" x 1927).chr(0x10FFFF), "delta above a signed 32 bit limit"],
+  [("a" x 3854).chr(0x10FFFF), "delta just below the encoder guard"],
 );
 
 our @stringifies = (
@@ -69,8 +74,8 @@ our @encode_malformed = (
 
 plan tests => 1
   + 3 * (scalar @encode_malformed)
-  + 2 * (scalar @encode_dies)
-  + 3 * (scalar @decode_dies)
+  + 4 * (scalar @encode_dies)
+  + 4 * (scalar @decode_dies)
   + 1 * (scalar @decode_roundtrips)
   + 2 * (scalar @agree)
   + 1 * (scalar @stringifies);
@@ -82,6 +87,10 @@ foreach my $test (@encode_dies)
   is(eval { Net::IDN::Punycode::encode_punycode($input) }, undef,
     $comment.' (encode_punycode dies)');
   like($@, $message, $comment.' (encode_punycode message)');
+
+  is(eval { Net::IDN::Punycode::PP::encode_punycode($input) }, undef,
+    $comment.' (PP encode_punycode dies)');
+  like($@, $message, $comment.' (PP encode_punycode message)');
 }
 
 foreach my $test (@decode_dies)
@@ -94,6 +103,7 @@ foreach my $test (@decode_dies)
 
   is(eval { Net::IDN::Punycode::PP::decode_punycode($label) }, undef,
     $comment.' (PP decode_punycode dies)');
+  like($@, $message, $comment.' (PP decode_punycode message)');
 }
 
 foreach my $test (@decode_roundtrips)
