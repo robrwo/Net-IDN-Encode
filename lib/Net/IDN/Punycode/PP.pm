@@ -57,6 +57,9 @@ sub decode_punycode {
     my @output;
 
     return undef unless defined $input;
+    ## die, not croak - Carp dies formatting the malformed argument
+    die("non-base character in input for decode_punycode")
+      unless utf8::valid($input);
     return '' unless length $input;
 
     if($input =~ s/(.*)$Delimiter//os) {
@@ -113,6 +116,9 @@ sub encode_punycode {
     no warnings 'utf8';
 
     my $input = shift;
+    ## die, not croak - Carp dies formatting the malformed argument
+    die("malformed UTF-8 in input for encode_punycode")
+      if defined $input && !utf8::valid($input);
     my $input_length = length $input;
 
     ## my $output = join '', $input =~ m/([$BasicRE]+)/og; ## slower

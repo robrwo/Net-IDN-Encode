@@ -42,9 +42,17 @@ our @decode_dies = (
     "a label only an unguarded encoder could produce"],
 );
 
+our @malformed = (
+    [ "abc\xE2\x82", "a truncated UTF-8 sequence" ],
+    [ "\xE2\x82abc", "a truncated UTF-8 sequence at the start" ],
+    [ "abc\xFF",     "a byte which starts no UTF-8 sequence" ],
+    [ "a\xC0\x80b",  "an overlong encoding" ],
+);
+
 plan tests => 1
   + 2 * (scalar @encode_dies)
-  + 2 * (scalar @decode_dies);
+  + 2 * (scalar @decode_dies)
+  + 4 * (scalar @malformed);
 
 foreach my $test (@encode_dies) {
     my ( $input, $message, $comment ) = @{$test};
@@ -61,4 +69,19 @@ foreach my $test (@decode_dies)
   is(eval { Net::IDN::Punycode::PP::decode_punycode($label) }, undef,
     $comment.' (decode_punycode dies)');
   like($@, $message, $comment.' (decode_punycode message)');
+}
+
+require Encode;
+
+foreach my $test (@malformed) {
+    my ( $bytes, $comment ) = @{$test};
+
+    no warnings 'utf8';
+    Encode::_utf8_on($bytes);
+    is( eval { Net::IDN::Punycode::PP::encode_punycode($bytes) },
+        undef, $comment . ' (encode_punycode dies)' );
+    like( $@, qr/malformed UTF-8/, $comment . ' (encode_punycode message)' );
+    is( eval { Net::IDN::Punycode::PP::decode_punycode($bytes) },
+        undef, $comment . ' (decode_punycode dies)' );
+    like( $@, qr/non-base character/, $comment . ' (decode_punycode message)' );
 }
