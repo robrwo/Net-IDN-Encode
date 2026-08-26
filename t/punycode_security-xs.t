@@ -64,10 +64,11 @@ our @encode_malformed = (
   ["abc\xE2\x82", "a truncated UTF-8 sequence"],
   ["\xE2\x82abc", "a truncated UTF-8 sequence at the start"],
   ["abc\xFF", "a byte which starts no UTF-8 sequence"],
+  ["a\xC0\x80b", "an overlong encoding"],
 );
 
 plan tests => 1
-  + 1 * (scalar @encode_malformed)
+  + 3 * (scalar @encode_malformed)
   + 2 * (scalar @encode_dies)
   + 3 * (scalar @decode_dies)
   + 1 * (scalar @decode_roundtrips)
@@ -127,6 +128,20 @@ foreach my $test (@stringifies)
 
   is($from_ref, $from_string,
     $comment.' (decode_punycode reads only the stringified value)');
+}
+
+require Encode;
+
+foreach my $test (@encode_malformed)
+{
+  my ($bytes, $comment) = @{$test};
+
+  no warnings 'utf8';
+  Encode::_utf8_on($bytes);
+  is(eval { Net::IDN::Punycode::encode_punycode($bytes) }, undef,
+    $comment.' (encode_punycode dies with utf8 warnings off)');
+  like($@, qr/malformed UTF-8/,
+    $comment.' (encode_punycode message with utf8 warnings off)');
 }
 
 foreach my $test (@encode_malformed)

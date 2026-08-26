@@ -22,10 +22,6 @@
 
 #define TMIN_MAX(t)  (((t) < TMIN) ? (TMIN) : ((t) > TMAX) ? (TMAX) : (t))
 
-#ifndef utf8_to_uvchr_buf
-#define utf8_to_uvchr_buf(in_p,in_e,u8) utf8_to_uvchr(in_p,u8);
-#endif
-
 #ifndef uvchr_to_utf8_flags
 #define uvchr_to_utf8_flags(d, uv, flags) uvuni_to_utf8_flags(d, uv, flags);
 #endif
@@ -136,7 +132,7 @@ encode_punycode(input)
 		  q = skip_delta = 0;
 
 		  for(in_p = skip_p = in_s; in_p < in_e;) {
-		    c = utf8_to_uvchr_buf((U8*)in_p, (U8*)in_e, &u8);
+		    c = utf8n_to_uvchr((U8*)in_p, in_e - in_p, &u8, UTF8_CHECK_ONLY);
 		    if(u8 == (STRLEN)-1)
 		      croak_free(RETVAL, "malformed UTF-8 in input for encode_punycode");
 		    c = NATIVE_TO_UNI(c);
@@ -166,7 +162,7 @@ encode_punycode(input)
 		    croak_free(RETVAL, "input exceeds punycode limit");
 		  delta += skip_delta;
 		  for(in_p = skip_p; in_p < in_e;) {
-		    c = utf8_to_uvchr_buf((U8*)in_p, (U8*)in_e, &u8);
+		    c = utf8n_to_uvchr((U8*)in_p, in_e - in_p, &u8, UTF8_CHECK_ONLY);
 		    assert(u8 != (STRLEN)-1);		/* the scan above rejected these */
 		    c = NATIVE_TO_UNI(c);
 
