@@ -87,6 +87,7 @@ encode_punycode(input)
 		const char *in_s, *in_p, *in_e, *skip_p;
  		char *re_s, *re_p, *re_e;
 		int first = 1;
+		int found;
 		STRLEN length_guess, len, h, u8;
 
 	CODE:
@@ -121,8 +122,10 @@ encode_punycode(input)
 		}
 
 		for(;;) {
-		  /* find smallest code point not yet handled */
-		  m = UV_MAX;
+		  /* find smallest code point not yet handled;
+		     UV_MAX is a code point on 32-bit UVs, so no value can mark "none" */
+		  m = 0;
+		  found = 0;
 		  q = skip_delta = 0;
 
 		  for(in_p = skip_p = in_s; in_p < in_e;) {
@@ -131,7 +134,8 @@ encode_punycode(input)
 		      croak("malformed UTF-8 in input for encode_punycode");
 		    c = NATIVE_TO_UNI(c);
 
-		    if(c >= n && c < m) {
+		    if(c >= n && (!found || c < m)) {
+		      found = 1;
  		      m = c;
 		      skip_p = in_p;
 		      skip_delta = q;
@@ -140,7 +144,7 @@ encode_punycode(input)
 		      ++q;
 		    in_p += u8;
 		  }
-		  if(m == UV_MAX)
+		  if(!found)
 		    break;
 
 		  /* increase delta to the state corresponding to
