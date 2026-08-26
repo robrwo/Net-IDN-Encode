@@ -20,9 +20,14 @@ BEGIN {
 
 use Test::NoWarnings;
 
+# chr(0xFFFFFFFF) is fatal where ivsize is 4, so build it at runtime
+my $max_uv32 = eval { my $cp = 0xFFFFFFFF; chr $cp };
+
 our @rejections = (
-  [("a" x 2000).chr(0xFFFFFFFF), \&Net::IDN::Punycode::encode_punycode,
-    "rejected encode input"],
+  (defined $max_uv32
+    ? [("a" x 2000).$max_uv32, \&Net::IDN::Punycode::encode_punycode,
+        "rejected encode input"]
+    : ()),
   [("a" x 2000)."\xFF", \&Net::IDN::Punycode::decode_punycode,
     "rejected decode input"],
 );

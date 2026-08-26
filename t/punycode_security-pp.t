@@ -7,12 +7,19 @@ use Net::IDN::Punycode::PP ();
 
 use Test::NoWarnings;
 
+# chr(0xFFFFFFFF) is fatal where ivsize is 4, so build it at runtime
+my $max_uv32 = eval { my $cp = 0xFFFFFFFF; chr $cp };
+
 our @encode_dies = (
-    [
-        "a" . chr(0xFFFFFFFF),
-        qr/exceeds punycode limit/,
-        "encoding overflows the delta accumulator"
-    ],
+    (
+        defined $max_uv32
+        ? [
+            "a" . $max_uv32,
+            qr/exceeds punycode limit/,
+            "encoding overflows the delta accumulator"
+          ]
+        : ()
+    ),
     [
         ( "a" x 4368 ) . chr(983183),
         qr/exceeds punycode limit/,
