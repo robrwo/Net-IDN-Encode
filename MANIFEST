@@ -23,6 +23,7 @@ t/encode_bytes.t
 t/encode_utf8.t
 t/punycode_alloc-xs.t
 t/punycode_leak-xs.t
+t/punycode_leaktrace-xs.t
 t/punycode_quadratic-xs.t
 t/punycode_security-pp.t
 t/punycode_security-xs.t
