@@ -15,6 +15,9 @@ use Test::NoWarnings;
 
 our @large = (
   ["a" x 200000, "a label of single-digit code points"],
+  [Net::IDN::Punycode::encode_punycode(
+      join "", map chr(0x80 + $_), reverse 0 .. 9999),
+    "a label inserting every code point at the front"],
 );
 
 plan tests => 1
