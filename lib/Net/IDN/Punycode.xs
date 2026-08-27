@@ -209,7 +209,6 @@ decode_punycode(input)
 		int k, t;
 
 		int bias = INITIAL_BIAS;
-		int delta = 0, skip_delta;
 
 		const char *in_s, *in_p, *in_e, *skip_p;
 		char *re_s, *re_p;
