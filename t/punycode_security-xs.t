@@ -56,6 +56,7 @@ our @decode_dies = (
 
 our @decode_roundtrips = (
   [chr(0x10FFFF) x 125, "decoding outgrows the output buffer"],
+  ["abc", "a label of only basic characters"],
 );
 
 our @agree = (
