@@ -99,7 +99,7 @@ encode_punycode(input)
 		length_guess += 2;				/* plus DELIM + '\0' */
 
 		RETVAL = NEWSV('P',length_guess);
-		sv_2mortal(RETVAL);		/* freed on croak; SvREFCNT_inc on return */
+		sv_2mortal(RETVAL);		/* freed on croak */
 		SvPOK_only(RETVAL);
 		re_s = re_p = SvPV_nolen(RETVAL);
 		re_e = re_s + SvLEN(RETVAL);
@@ -122,8 +122,8 @@ encode_punycode(input)
 		}
 
 		for(;;) {
-		  /* find smallest code point not yet handled;
-		     UV_MAX is a code point on 32-bit UVs, so no value can mark "none" */
+		  /* find smallest code point not yet handled. UV_MAX is a
+		     code point on 32-bit UVs, so no value can mark "none" */
 		  m = 0;
 		  found = 0;
 		  q = skip_delta = 0;
@@ -165,7 +165,8 @@ encode_punycode(input)
 		    c = NATIVE_TO_UNI(c);
 
 		    if(c < n) {
-		      /* delta resets at c == n, so reaching this takes PUNYCODE_MAXINT characters */
+		      /* delta resets at c == n, so reaching this
+		         takes PUNYCODE_MAXINT characters */
 		      if(delta == PUNYCODE_MAXINT) croak("input exceeds punycode limit");
 		      ++delta;
                     } else if( c == n ) {
@@ -187,7 +188,8 @@ encode_punycode(input)
                     }
 		    in_p += u8;
 		  }
-		  /* delta resets at c == n, so reaching this takes PUNYCODE_MAXINT characters */
+		  /* delta resets at c == n, so reaching this takes
+		     PUNYCODE_MAXINT characters */
 		  if(delta == PUNYCODE_MAXINT) croak("input exceeds punycode limit");
 		  ++delta;
 		  ++n;
@@ -225,7 +227,7 @@ decode_punycode(input)
 		  croak("input too long for decode_punycode");
 
 		RETVAL = NEWSV('D', len + 1);
-		sv_2mortal(RETVAL);		/* freed on croak; SvREFCNT_inc on return */
+		sv_2mortal(RETVAL);		/* freed on croak */
 		SvPOK_only(RETVAL);
 
 		cp_sv = sv_2mortal(newSV((len + 1) * sizeof(UV)));
@@ -262,7 +264,8 @@ decode_punycode(input)
 		    i += c * w;
 		    t = TMIN_MAX(k - bias);
 		    if(c < t) break;
-		    assert(w <= PUNYCODE_MAXINT / (BASE-t));	/* the c*w guard above and bias <= 204 bound w */
+		    /* the c*w guard above and bias <= 204 bound w */
+		    assert(w <= PUNYCODE_MAXINT / (BASE-t));
 		    w *= BASE-t;
 		  }
 		  h++;
