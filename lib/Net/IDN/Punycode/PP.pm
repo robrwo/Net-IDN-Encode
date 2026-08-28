@@ -16,7 +16,8 @@ our @EXPORT = ();
 our @EXPORT_OK = qw(encode_punycode decode_punycode);
 our %EXPORT_TAGS = ( 'all' => \@EXPORT_OK );
 
-use integer;
+## no "use integer" - IV arithmetic wraps below PUNYCODE_MAXINT on 32-bit
+## perls, whereas NV arithmetic is exact up to 2**53 everywhere
 
 use constant BASE => 36;
 use constant TMIN => 1;
@@ -39,10 +40,10 @@ sub _adapt {
     $delta += int($delta / $numpoints);
     my $k = 0;
     while ($delta > int(((BASE - TMIN) * TMAX) / 2)) {
-	$delta /= BASE - TMIN;
+        $delta = int( $delta / ( BASE - TMIN ) );
 	$k += BASE;
     }
-    return $k + (((BASE - TMIN + 1) * $delta) / ($delta + SKEW));
+    return $k + int( ( ( BASE - TMIN + 1 ) * $delta ) / ( $delta + SKEW ) );
 }
 
 sub decode_punycode {
@@ -102,8 +103,9 @@ sub decode_punycode {
 	    $w *= (BASE - $t);
 	}
 	$bias = _adapt($i - $oldi, @output + 1, $oldi == 0);
-        croak('invalid code point') if $i / ( @output + 1 ) > UNICODE_MAX - $n;
-	$n += $i / (@output + 1);
+        croak('invalid code point')
+          if int( $i / ( @output + 1 ) ) > UNICODE_MAX - $n;
+        $n += int( $i / ( @output + 1 ) );
 	$i = $i % (@output + 1);
 	splice(@output, $i, 0, chr($n));
 	$i++;
