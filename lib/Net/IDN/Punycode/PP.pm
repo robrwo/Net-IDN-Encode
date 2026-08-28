@@ -132,6 +132,7 @@ sub encode_punycode {
 
     my @input = map ord, split //, $input;
     my @chars = sort { $a<=> $b } grep { $_ >= INITIAL_N } @input;
+    croak("invalid code point") if @chars && $chars[-1] > UNICODE_MAX;
 
     my $n = INITIAL_N;
     my $delta = 0;

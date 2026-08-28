@@ -133,6 +133,8 @@ encode_punycode(input)
 		    if(u8 == (STRLEN)-1)
 		      croak("malformed UTF-8 in input for encode_punycode");
 		    c = NATIVE_TO_UNI(c);
+		    if(c > UNICODE_MAX)
+		      croak("invalid code point");
 
 		    if(c >= n && (!found || c < m)) {
 		      found = 1;

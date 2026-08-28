@@ -15,11 +15,16 @@ our @encode_dies = (
         defined $max_uv32
         ? [
             "a" . $max_uv32,
-            qr/exceeds punycode limit/,
-            "encoding overflows the delta accumulator"
+            qr/invalid code point/,
+            "a code point far above Unicode"
           ]
         : ()
     ),
+    [
+        "a" . chr(0x110000),
+        qr/invalid code point/,
+        "a code point just above Unicode"
+    ],
     [
         ( "a" x 4368 ) . chr(983183),
         qr/exceeds punycode limit/,

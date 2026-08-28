@@ -24,9 +24,11 @@ my $max_uv32 = eval { my $cp = 0xFFFFFFFF; chr $cp };
 
 our @encode_dies = (
   (defined $max_uv32
-    ? ["a".$max_uv32, qr/exceeds punycode limit/,
-        "encoding overflows the delta accumulator"]
+    ? ["a".$max_uv32, qr/invalid code point/,
+        "a code point far above Unicode"]
     : ()),
+  ["a".chr(0x110000), qr/invalid code point/,
+    "a code point just above Unicode"],
   [("a" x 4368).chr(983183), qr/exceeds punycode limit/,
     "the skipped basic code points overflow the delta accumulator"],
   [("a" x 3855).chr(0x10FFFF), qr/exceeds punycode limit/,
