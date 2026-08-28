@@ -38,6 +38,10 @@ our @encode_dies = (
 );
 
 our @decode_dies = (
+  ["\x80-a", qr/non-base character/,
+    "a non-basic character before the delimiter"],
+  ["a=", qr/invalid digit/,
+    "a basic but non-alphanumeric character"],
   ["NMzZNlL6SU", qr/incomplete encoded code point/,
     "truncated label without a delimiter"],
   ["abc-td", qr/incomplete encoded code point/,
@@ -61,10 +65,22 @@ our @malformed = (
     [ "a\xC0\x80b",  "an overlong encoding" ],
 );
 
-plan tests => 1
+plan tests => 1 + 5
   + 2 * (scalar @encode_dies)
   + 2 * (scalar @decode_dies)
   + 4 * (scalar @malformed);
+
+{
+    is( eval { Net::IDN::Punycode::PP::decode_punycode() },
+        undef, 'decode_punycode without arguments dies' );
+    like( $@, qr/^Usage:/, 'decode_punycode usage message' );
+    is( eval { Net::IDN::Punycode::PP::encode_punycode() },
+        undef, 'encode_punycode without arguments dies' );
+    like( $@, qr/^Usage:/, 'encode_punycode usage message' );
+
+    is( Net::IDN::Punycode::PP::decode_punycode(""),
+        "", 'decode_punycode("") returns the empty string' );
+}
 
 foreach my $test (@encode_dies) {
     my ( $input, $message, $comment ) = @{$test};
