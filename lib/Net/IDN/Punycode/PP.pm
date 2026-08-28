@@ -57,7 +57,11 @@ sub decode_punycode {
     my $bias   = INITIAL_BIAS;
     my @output;
 
-    return undef unless defined $input;
+    unless ( defined $input ) {
+        warnings::warnif( 'uninitialized',
+            'Use of uninitialized value in subroutine entry' );
+        return '';
+    }
     ## die, not croak - Carp dies formatting the malformed argument
     die("non-base character in input for decode_punycode")
       unless utf8::valid($input);
@@ -118,9 +122,14 @@ sub encode_punycode {
     no warnings 'utf8';
 
     my $input = shift;
+    unless ( defined $input ) {
+        warnings::warnif( 'uninitialized',
+            'Use of uninitialized value in subroutine entry' );
+        return '';
+    }
     ## die, not croak - Carp dies formatting the malformed argument
     die("malformed UTF-8 in input for encode_punycode")
-      if defined $input && !utf8::valid($input);
+      unless utf8::valid($input);
     my $input_length = length $input;
 
     ## my $output = join '', $input =~ m/([$BasicRE]+)/og; ## slower

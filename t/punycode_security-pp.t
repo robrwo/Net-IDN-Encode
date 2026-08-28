@@ -65,7 +65,7 @@ our @malformed = (
     [ "a\xC0\x80b",  "an overlong encoding" ],
 );
 
-plan tests => 1 + 5
+plan tests => 1 + 9
   + 2 * (scalar @encode_dies)
   + 2 * (scalar @decode_dies)
   + 4 * (scalar @malformed);
@@ -77,6 +77,15 @@ plan tests => 1 + 5
     is( eval { Net::IDN::Punycode::PP::encode_punycode() },
         undef, 'encode_punycode without arguments dies' );
     like( $@, qr/^Usage:/, 'encode_punycode usage message' );
+
+    my @warnings;
+    local $SIG{__WARN__} = sub { push @warnings, @_ };
+    is( Net::IDN::Punycode::PP::decode_punycode(undef),
+        "", 'decode_punycode(undef) returns the empty string' );
+    is( Net::IDN::Punycode::PP::encode_punycode(undef),
+        "", 'encode_punycode(undef) returns the empty string' );
+    is( @warnings, 2, 'undef input warns once per call' );
+    like( $warnings[0], qr/uninitialized/, 'the warning names the cause' );
 
     is( Net::IDN::Punycode::PP::decode_punycode(""),
         "", 'decode_punycode("") returns the empty string' );
