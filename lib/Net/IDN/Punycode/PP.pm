@@ -79,7 +79,7 @@ sub decode_punycode {
       if $code =~ m/[^$BasicRE]/os;
     croak('invalid digit in input for decode_punycode') if $code =~ m/[^$PunyRE]/os;
 
-    utf8::downgrade($input);	## handling failure of downgrade is more expensive than
+    utf8::downgrade($code);	## handling failure of downgrade is more expensive than
 				## doing the above regexp w/ utf8 semantics
 
     while(length $code)
