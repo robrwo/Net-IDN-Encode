@@ -181,7 +181,10 @@ encode_punycode(input)
 			*re_p++ = enc_digit[t + ((q-t) % (BASE-t))];
 		        q = (q-t) / (BASE-t);
   		      }
-		      assert(q < BASE);			/* the loop above exits on q < t <= TMAX */
+		      /* the loop above exits on q < t <= TMAX, so no input
+			 reaches this croak, but it guards the enc_digit[q]
+			 read below and costs nothing on the reachable path */
+		      if(q >= BASE) croak("input exceeds punycode limit");
 		      grow_string(RETVAL, &re_s, &re_p, &re_e, sizeof(char));
 	              *re_p++ = enc_digit[q];
 		      bias = adapt(delta, h+1, first);
