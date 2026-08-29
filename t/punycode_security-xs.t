@@ -29,6 +29,8 @@ our @encode_dies = (
     : ()),
   ["a".chr(0x110000), qr/invalid code point/,
     "a code point just above Unicode"],
+  ["a".chr(0xD800), qr/invalid code point/,
+    "a surrogate code point"],
   [("a" x 4368).chr(983183), qr/exceeds punycode limit/,
     "the skipped basic code points overflow the delta accumulator"],
   [("a" x 3855).chr(0x10FFFF), qr/exceeds punycode limit/,
@@ -52,6 +54,8 @@ our @decode_dies = (
     "wraps a 32 bit code point accumulator to NUL"],
   ["8x902716a", qr/invalid code point/,
     "wraps a 32 bit code point accumulator to a label separator"],
+  ["ib9b", qr/invalid code point/,
+    "decodes to a surrogate code point"],
   [("a" x 3900)."-2x485856a", qr/exceeds punycode limit/,
     "a label only an unguarded encoder could produce"],
 );

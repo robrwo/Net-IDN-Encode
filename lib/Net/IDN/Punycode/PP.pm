@@ -29,6 +29,8 @@ use constant INITIAL_N => 128;
 
 use constant UNICODE_MAX => 0x10FFFF;
 use constant PUNYCODE_MAXINT => 0xFFFFFFFF;
+use constant SURROGATE_MIN   => 0xD800;
+use constant SURROGATE_MAX   => 0xDFFF;
 
 my $Delimiter = chr 0x2D;
 my $BasicRE   = "\x00-\x7f";
@@ -110,6 +112,8 @@ sub decode_punycode {
         croak('invalid code point')
           if int( $i / ( @output + 1 ) ) > UNICODE_MAX - $n;
         $n += int( $i / ( @output + 1 ) );
+        croak('invalid code point')
+          if $n >= SURROGATE_MIN && $n <= SURROGATE_MAX;
 	$i = $i % (@output + 1);
 	splice(@output, $i, 0, chr($n));
 	$i++;
@@ -142,6 +146,8 @@ sub encode_punycode {
     my @input = map ord, split //, $input;
     my @chars = sort { $a<=> $b } grep { $_ >= INITIAL_N } @input;
     croak("invalid code point") if @chars && $chars[-1] > UNICODE_MAX;
+    croak("invalid code point")
+      if grep { $_ >= SURROGATE_MIN && $_ <= SURROGATE_MAX } @chars;
 
     my $n = INITIAL_N;
     my $delta = 0;

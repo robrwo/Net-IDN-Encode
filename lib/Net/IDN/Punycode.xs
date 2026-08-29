@@ -17,6 +17,10 @@
 #define UNICODE_MAX 0x10FFFF
 #define PUNYCODE_MAXINT 0xFFFFFFFFUL
 
+#define SURROGATE_MIN 0xD800
+#define SURROGATE_MAX 0xDFFF
+#define isSURROGATE(c) ((c) >= SURROGATE_MIN && (c) <= SURROGATE_MAX)
+
 #define isBASE(x) UTF8_IS_INVARIANT((unsigned char)x)
 #define DELIM '-'
 
@@ -133,7 +137,7 @@ encode_punycode(input)
 		    if(u8 == (STRLEN)-1)
 		      croak("malformed UTF-8 in input for encode_punycode");
 		    c = NATIVE_TO_UNI(c);
-		    if(c > UNICODE_MAX)
+		    if(c > UNICODE_MAX || isSURROGATE(c))
 		      croak("invalid code point");
 
 		    if(c >= n && (!found || c < m)) {
@@ -279,6 +283,8 @@ decode_punycode(input)
 		  if(i / h > UNICODE_MAX - n)			/* adding first wraps a 32-bit UV */
 		    croak("invalid code point");
 		  n += i / h;					/* code point n to insert */
+		  if(isSURROGATE(n))				/* not a Unicode scalar value */
+		    croak("invalid code point");
 	          i = i % h;					/* at position i */
 
 		  if(i < h-1)					/* move succeeding chars */

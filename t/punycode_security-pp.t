@@ -25,6 +25,7 @@ our @encode_dies = (
         qr/invalid code point/,
         "a code point just above Unicode"
     ],
+    [ "a" . chr(0xD800), qr/invalid code point/, "a surrogate code point" ],
     [
         ( "a" x 4368 ) . chr(983183),
         qr/exceeds punycode limit/,
@@ -54,6 +55,8 @@ our @decode_dies = (
     "delta accumulator overflows"],
   ["a-j023p", qr/invalid code point/,
     "decodes just above U+10FFFF"],
+  ["ib9b", qr/invalid code point/,
+    "decodes to a surrogate code point"],
   [("a" x 3900)."-2x485856a", qr/exceeds punycode limit/,
     "a label only an unguarded encoder could produce"],
 );
