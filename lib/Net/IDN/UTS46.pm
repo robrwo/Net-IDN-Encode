@@ -350,6 +350,9 @@ This function takes the following optional parameters (C<%param>):
 (boolean) If set to a true value, unassigned code points in the label are
 allowed. This is an extension over UTS #46.
 
+Code points that are not Unicode scalar values, a surrogate or a value
+above U+10FFFF, remain disallowed, since they cannot form a valid label.
+
 The default is false.
 
 =item UseSTD3ASCIIRules

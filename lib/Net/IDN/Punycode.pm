@@ -84,13 +84,21 @@ The following functions are available:
 
 Encodes C<$input> with Punycode and returns the result.
 
-This function will throw an exception on invalid/unencodable input.
+This function throws an exception on input it cannot encode. It
+rejects malformed UTF-8 and a code point that is not a Unicode scalar
+value. The latter covers a surrogate in U+D800 to U+DFFF and any
+value above U+10FFFF. It also rejects input large enough to overflow
+the Punycode counters.
 
 =item decode_punycode($input)
 
 Decodes C<$input> with Punycode and returns the result.
 
-This function will throw an exception on invalid input.
+This function throws an exception on input it cannot decode. It
+rejects a character outside the basic set, an invalid or truncated
+digit sequence, and a decoded code point that is not a Unicode scalar
+value. It also rejects input large enough to overflow the Punycode
+counters.
 
 =back
 
