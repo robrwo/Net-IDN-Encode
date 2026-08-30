@@ -1,5 +1,25 @@
 Revision history for Perl extension Net::IDN::Encode
 
+        - fix CVE-2026-74766, a heap use-after-free in the XS
+          decode_punycode on attacker-supplied punycode.
+        - fix CVE-2026-74765, an integer overflow and out-of-bounds read in
+          the XS encode_punycode.
+        - reject code points that are not Unicode scalar values (surrogates
+          and values above U+10FFFF) when encoding and decoding punycode.
+          Such input was previously accepted.
+        - add the RFC 3492 overflow checks to both punycode backends so
+          they reject the same inputs with the same messages.
+        - store the punycode counters in perl UV integers rather than C
+          int, bounded at the RFC 3492 limit of 0xFFFFFFFF. The XS no
+          longer rejects input the pure-Perl backend accepts.
+        - reject malformed UTF-8 input in both punycode backends.
+        - fix the pure-Perl decoder treating a truncated label as complete
+          and adding an extra character to the result.
+        - fix memory leaks when the XS functions reject input.
+        - fix quadratic decoding cost for large labels in the XS backend.
+        - fix the pure-Perl overflow guards on perls with 32-bit integers.
+        - match the XS behaviour for undef input in the pure-Perl backend.
+
 2.502 2026-08-24
         - apply fix from Karen Etheridge's 2.501 release.
         - update the maintainer information.
