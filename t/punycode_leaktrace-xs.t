@@ -32,6 +32,21 @@ our @calls = (
         "encode croaking on the delta guard"
     ],
     [
+        ( "a" x 4368 ) . chr(983183),
+        \&Net::IDN::Punycode::encode_punycode,
+        "encode croaking on the skipped basic code point guard"
+    ],
+    [
+        "a" . chr(0x110000),
+        \&Net::IDN::Punycode::encode_punycode,
+        "encode croaking on a code point above Unicode"
+    ],
+    [
+        "a" . chr(0xD800),
+        \&Net::IDN::Punycode::encode_punycode,
+        "encode croaking on a surrogate code point"
+    ],
+    [
         "a-99999999999999999999",
         \&Net::IDN::Punycode::decode_punycode,
         "decode croaking on the digit weight guard"
@@ -40,6 +55,31 @@ our @calls = (
         "\x80",
         \&Net::IDN::Punycode::decode_punycode,
         "decode croaking on a non-base character"
+    ],
+    [
+        "a-9",
+        \&Net::IDN::Punycode::decode_punycode,
+        "decode croaking on an incomplete encoded code point"
+    ],
+    [
+        "a-!",
+        \&Net::IDN::Punycode::decode_punycode,
+        "decode croaking on an invalid digit"
+    ],
+    [
+        "a-kk503321e",
+        \&Net::IDN::Punycode::decode_punycode,
+        "decode croaking on the delta accumulator guard"
+    ],
+    [
+        "a-j023p",
+        \&Net::IDN::Punycode::decode_punycode,
+        "decode croaking on a code point above Unicode"
+    ],
+    [
+        "ib9b",
+        \&Net::IDN::Punycode::decode_punycode,
+        "decode croaking on a surrogate code point"
     ],
 );
 
