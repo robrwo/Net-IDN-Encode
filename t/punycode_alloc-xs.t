@@ -17,12 +17,12 @@ BEGIN {
 our $LEN;
 
 BEGIN {
-    # (len + 1) * sizeof(UV) wraps STRLEN on a 32-bit perl, so only an input
+    # cp_max * sizeof(U32) wraps STRLEN on a 32-bit perl, so only an input
     # past the wrap point reaches the guard in decode_punycode. That is why
-    # this test wants 512MB and skips everywhere else.
+    # this test wants 1GB and skips everywhere else.
     plan skip_all => 'needs a 32-bit address space' if $Config{ptrsize} != 4;
 
-    $LEN = int( 2**32 / $Config{uvsize} );
+    $LEN = 2**30;
 
     my $free = 0;
     if ( open my $meminfo, "<", "/proc/meminfo" ) {
@@ -45,10 +45,20 @@ BEGIN {
 
 use Test::NoWarnings;
 
-plan tests => 3;
+plan tests => 5;
 
-my $label = "a" x $LEN;
-substr( $label, -1, 1, "-" );    # in place, to hold one buffer only
+my $label = "\xFF" x $LEN;
+
+is( eval { Net::IDN::Punycode::decode_punycode($label) },
+    undef, "validation comes before the size guard (dies)" );
+like(
+    $@,
+    qr/non-base character/,
+    "validation comes before the size guard (message)"
+);
+
+$label =~ tr/\xFF/a/;    # in place, to hold one buffer only
+substr( $label, -1, 1, "-" );
 
 is( eval { Net::IDN::Punycode::decode_punycode($label) },
     undef, "the code point buffer size wraps STRLEN (dies)" );

@@ -224,23 +224,13 @@ decode_punycode(input)
 		const char *in_s, *in_p, *in_e, *skip_p;
 		char *re_s, *re_p;
 		int first = 1;
-		STRLEN len, h, total;
-		UV *cp_s;
+		STRLEN len, h, total, cp_max;
+		U32 *cp_s;
 		SV *cp_sv;
 
 	CODE:
 		in_s = in_p = SvPV(input, len);
 		in_e = in_s + len;
-
-		if(len > MEM_SIZE_MAX / sizeof(UV) - 1)
-		  croak("input too long for decode_punycode");
-
-		RETVAL = NEWSV('D', len + 1);
-		sv_2mortal(RETVAL);		/* freed on croak */
-		SvPOK_only(RETVAL);
-
-		cp_sv = sv_2mortal(newSV((len + 1) * sizeof(UV)));
-		cp_s = (UV*)SvPVX(cp_sv);
 
 		skip_p = NULL;
 		for(in_p = in_s; in_p < in_e; in_p++) {
@@ -251,13 +241,21 @@ decode_punycode(input)
 
 		if(skip_p) {
 		  h = skip_p - in_s;				/* base chars handled */
-		  for(j = 0; j < h; j++)
-		    cp_s[j] = (unsigned char)in_s[j];		/* copy them */
 		  skip_p++;					/* skip over DELIM */
                 } else {
 		  h = 0;					/* no base chars */
 		  skip_p = in_s;				/* read everything */
 		}
+
+		/* every insertion consumes at least one digit byte */
+		cp_max = h + (in_e - skip_p) + 1;
+		if(cp_max > (MEM_SIZE_MAX - 1) / sizeof(U32))
+		  croak("input too long for decode_punycode");
+
+		cp_sv = sv_2mortal(newSV(cp_max * sizeof(U32)));
+		cp_s = (U32*)SvPVX(cp_sv);
+		for(j = 0; j < h; j++)
+		  cp_s[j] = (unsigned char)in_s[j];		/* copy base chars */
 
 		for(in_p = skip_p; in_p < in_e; i++) {
 		  oldi = i;
@@ -288,15 +286,18 @@ decode_punycode(input)
 	          i = i % h;					/* at position i */
 
 		  if(i < h-1)					/* move succeeding chars */
-		    Move(cp_s + i, cp_s + i + 1, (h-1) - i, UV);
-		  cp_s[i] = n;
+		    Move(cp_s + i, cp_s + i + 1, (h-1) - i, U32);
+		  cp_s[i] = (U32)n;
 		}
 
 		total = 0;
 		for(j = 0; j < h; j++)
 		  total += UNISKIP(cp_s[j]);
 
-		re_s = re_p = SvGROW(RETVAL, total + 1);
+		RETVAL = NEWSV('D', total + 1);
+		sv_2mortal(RETVAL);		/* freed on croak */
+		SvPOK_only(RETVAL);
+		re_s = re_p = SvPV_nolen(RETVAL);
 		for(j = 0; j < h; j++)
 		  re_p = (char*)uvchr_to_utf8_flags((U8*)re_p, cp_s[j], UNICODE_ALLOW_ANY);
 
