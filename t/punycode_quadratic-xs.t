@@ -33,6 +33,7 @@ foreach my $test (@large)
 
     if (!$pid) {
       close STDERR;
+      $SIG{__WARN__} = sub {};	# Test::NoWarnings keeps a backtrace per warning
       alarm 10;
       eval { Net::IDN::Punycode::decode_punycode($label) };
       exit 0;

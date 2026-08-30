@@ -176,6 +176,7 @@ foreach my $test (@encode_malformed)
 
     if (!$pid) {
       close STDERR;
+      $SIG{__WARN__} = sub {};	# Test::NoWarnings keeps a backtrace per warning
       require Encode;
       Encode::_utf8_on($bytes);
       alarm 10;
