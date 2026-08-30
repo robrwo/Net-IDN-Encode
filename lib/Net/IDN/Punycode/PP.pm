@@ -29,8 +29,8 @@ use constant INITIAL_N => 128;
 
 use constant UNICODE_MAX => 0x10FFFF;
 use constant PUNYCODE_MAXINT => 0xFFFFFFFF;
-use constant SURROGATE_MIN   => 0xD800;
-use constant SURROGATE_MAX   => 0xDFFF;
+use constant SURROGATE_MIN => 0xD800;
+use constant SURROGATE_MAX => 0xDFFF;
 
 my $Delimiter = chr 0x2D;
 my $BasicRE   = "\x00-\x7f";
@@ -42,10 +42,10 @@ sub _adapt {
     $delta += int($delta / $numpoints);
     my $k = 0;
     while ($delta > int(((BASE - TMIN) * TMAX) / 2)) {
-        $delta = int( $delta / ( BASE - TMIN ) );
+	$delta = int($delta / (BASE - TMIN));
 	$k += BASE;
     }
-    return $k + int( ( ( BASE - TMIN + 1 ) * $delta ) / ( $delta + SKEW ) );
+    return $k + int(((BASE - TMIN + 1) * $delta) / ($delta + SKEW));
 }
 
 sub decode_punycode {
@@ -59,9 +59,9 @@ sub decode_punycode {
     my $bias   = INITIAL_BIAS;
     my @output;
 
-    unless ( defined $input ) {
-        warnings::warnif( 'uninitialized',
-            'Use of uninitialized value in subroutine entry' );
+    unless (defined $input) {
+        warnings::warnif('uninitialized',
+            'Use of uninitialized value in subroutine entry');
         return '';
     }
     ## die, not croak - Carp dies formatting the malformed argument
@@ -99,8 +99,8 @@ sub decode_punycode {
 	    ##
 	    $digit = $digit < 0x40 ? $digit + (26-0x30) : ($digit & 0x1f) -1;
 
-            croak("input exceeds punycode limit")
-              if $digit > ( PUNYCODE_MAXINT - $i ) / $w;
+	    croak("input exceeds punycode limit")
+	      if $digit > (PUNYCODE_MAXINT - $i) / $w;
 	    $i += $digit * $w;
 	    my $t =  $k - $bias;
 	    $t = $t < TMIN ? TMIN : $t > TMAX ? TMAX : $t;
@@ -109,11 +109,11 @@ sub decode_punycode {
 	    $w *= (BASE - $t);
 	}
 	$bias = _adapt($i - $oldi, @output + 1, $oldi == 0);
-        croak('invalid code point')
-          if int( $i / ( @output + 1 ) ) > UNICODE_MAX - $n;
-        $n += int( $i / ( @output + 1 ) );
-        croak('invalid code point')
-          if $n >= SURROGATE_MIN && $n <= SURROGATE_MAX;
+	croak('invalid code point')
+	  if int($i / (@output + 1)) > UNICODE_MAX - $n;
+	$n += int($i / (@output + 1));
+	croak('invalid code point')
+	  if $n >= SURROGATE_MIN && $n <= SURROGATE_MAX;
 	$i = $i % (@output + 1);
 	splice(@output, $i, 0, chr($n));
 	$i++;
@@ -126,9 +126,9 @@ sub encode_punycode {
     no warnings 'utf8';
 
     my $input = shift;
-    unless ( defined $input ) {
-        warnings::warnif( 'uninitialized',
-            'Use of uninitialized value in subroutine entry' );
+    unless (defined $input) {
+        warnings::warnif('uninitialized',
+            'Use of uninitialized value in subroutine entry');
         return '';
     }
     ## die, not croak - Carp dies formatting the malformed argument
@@ -189,7 +189,7 @@ sub encode_punycode {
 		$h++;
 	    }
 	}
-        croak("input exceeds punycode limit") if $delta == PUNYCODE_MAXINT;
+	croak("input exceeds punycode limit") if $delta == PUNYCODE_MAXINT;
 	$delta++;
 	$n++;
     }

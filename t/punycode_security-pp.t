@@ -11,31 +11,18 @@ use Test::NoWarnings;
 my $max_uv32 = eval { my $cp = 0xFFFFFFFF; chr $cp };
 
 our @encode_dies = (
-    (
-        defined $max_uv32
-        ? [
-            "a" . $max_uv32,
-            qr/invalid code point/,
-            "a code point far above Unicode"
-          ]
-        : ()
-    ),
-    [
-        "a" . chr(0x110000),
-        qr/invalid code point/,
-        "a code point just above Unicode"
-    ],
-    [ "a" . chr(0xD800), qr/invalid code point/, "a surrogate code point" ],
-    [
-        ( "a" x 4368 ) . chr(983183),
-        qr/exceeds punycode limit/,
-        "the skipped basic code points overflow the delta accumulator"
-    ],
-    [
-        ( "a" x 3855 ) . chr(0x10FFFF),
-        qr/exceeds punycode limit/,
-        "a long basic prefix overflows the delta accumulator"
-    ],
+  (defined $max_uv32
+    ? ["a".$max_uv32, qr/invalid code point/,
+        "a code point far above Unicode"]
+    : ()),
+  ["a".chr(0x110000), qr/invalid code point/,
+    "a code point just above Unicode"],
+  ["a".chr(0xD800), qr/invalid code point/,
+    "a surrogate code point"],
+  [("a" x 4368).chr(983183), qr/exceeds punycode limit/,
+    "the skipped basic code points overflow the delta accumulator"],
+  [("a" x 3855).chr(0x10FFFF), qr/exceeds punycode limit/,
+    "a long basic prefix overflows the delta accumulator"],
 );
 
 our @decode_dies = (
@@ -62,10 +49,10 @@ our @decode_dies = (
 );
 
 our @malformed = (
-    [ "abc\xE2\x82", "a truncated UTF-8 sequence" ],
-    [ "\xE2\x82abc", "a truncated UTF-8 sequence at the start" ],
-    [ "abc\xFF",     "a byte which starts no UTF-8 sequence" ],
-    [ "a\xC0\x80b",  "an overlong encoding" ],
+  ["abc\xE2\x82", "a truncated UTF-8 sequence"],
+  ["\xE2\x82abc", "a truncated UTF-8 sequence at the start"],
+  ["abc\xFF", "a byte which starts no UTF-8 sequence"],
+  ["a\xC0\x80b", "an overlong encoding"],
 );
 
 plan tests => 1 + 9
@@ -74,32 +61,33 @@ plan tests => 1 + 9
   + 4 * (scalar @malformed);
 
 {
-    is( eval { Net::IDN::Punycode::PP::decode_punycode() },
-        undef, 'decode_punycode without arguments dies' );
-    like( $@, qr/^Usage:/, 'decode_punycode usage message' );
-    is( eval { Net::IDN::Punycode::PP::encode_punycode() },
-        undef, 'encode_punycode without arguments dies' );
-    like( $@, qr/^Usage:/, 'encode_punycode usage message' );
+  is(eval { Net::IDN::Punycode::PP::decode_punycode() }, undef,
+    'decode_punycode without arguments dies');
+  like($@, qr/^Usage:/, 'decode_punycode usage message');
+  is(eval { Net::IDN::Punycode::PP::encode_punycode() }, undef,
+    'encode_punycode without arguments dies');
+  like($@, qr/^Usage:/, 'encode_punycode usage message');
 
-    my @warnings;
-    local $SIG{__WARN__} = sub { push @warnings, @_ };
-    is( Net::IDN::Punycode::PP::decode_punycode(undef),
-        "", 'decode_punycode(undef) returns the empty string' );
-    is( Net::IDN::Punycode::PP::encode_punycode(undef),
-        "", 'encode_punycode(undef) returns the empty string' );
-    is( @warnings, 2, 'undef input warns once per call' );
-    like( $warnings[0], qr/uninitialized/, 'the warning names the cause' );
+  my @warnings;
+  local $SIG{__WARN__} = sub { push @warnings, @_ };
+  is(Net::IDN::Punycode::PP::decode_punycode(undef), "",
+    'decode_punycode(undef) returns the empty string');
+  is(Net::IDN::Punycode::PP::encode_punycode(undef), "",
+    'encode_punycode(undef) returns the empty string');
+  is(@warnings, 2, 'undef input warns once per call');
+  like($warnings[0], qr/uninitialized/, 'the warning names the cause');
 
-    is( Net::IDN::Punycode::PP::decode_punycode(""),
-        "", 'decode_punycode("") returns the empty string' );
+  is(Net::IDN::Punycode::PP::decode_punycode(""), "",
+    'decode_punycode("") returns the empty string');
 }
 
-foreach my $test (@encode_dies) {
-    my ( $input, $message, $comment ) = @{$test};
+foreach my $test (@encode_dies)
+{
+  my ($input, $message, $comment) = @{$test};
 
-    is( eval { Net::IDN::Punycode::PP::encode_punycode($input) },
-        undef, $comment . ' (encode_punycode dies)' );
-    like( $@, $message, $comment . ' (encode_punycode message)' );
+  is(eval { Net::IDN::Punycode::PP::encode_punycode($input) }, undef,
+    $comment.' (encode_punycode dies)');
+  like($@, $message, $comment.' (encode_punycode message)');
 }
 
 foreach my $test (@decode_dies)
@@ -113,15 +101,16 @@ foreach my $test (@decode_dies)
 
 require Encode;
 
-foreach my $test (@malformed) {
-    my ( $bytes, $comment ) = @{$test};
+foreach my $test (@malformed)
+{
+  my ($bytes, $comment) = @{$test};
 
-    no warnings 'utf8';
-    Encode::_utf8_on($bytes);
-    is( eval { Net::IDN::Punycode::PP::encode_punycode($bytes) },
-        undef, $comment . ' (encode_punycode dies)' );
-    like( $@, qr/malformed UTF-8/, $comment . ' (encode_punycode message)' );
-    is( eval { Net::IDN::Punycode::PP::decode_punycode($bytes) },
-        undef, $comment . ' (decode_punycode dies)' );
-    like( $@, qr/non-base character/, $comment . ' (decode_punycode message)' );
+  no warnings 'utf8';
+  Encode::_utf8_on($bytes);
+  is(eval { Net::IDN::Punycode::PP::encode_punycode($bytes) }, undef,
+    $comment.' (encode_punycode dies)');
+  like($@, qr/malformed UTF-8/, $comment.' (encode_punycode message)');
+  is(eval { Net::IDN::Punycode::PP::decode_punycode($bytes) }, undef,
+    $comment.' (decode_punycode dies)');
+  like($@, qr/non-base character/, $comment.' (decode_punycode message)');
 }
