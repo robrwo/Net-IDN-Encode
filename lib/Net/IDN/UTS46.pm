@@ -121,6 +121,12 @@ sub _process {
     _validate_bidi($l,%param)		if $is_bidi;
     _validate_contextj($l,%param);
 
+    ## punycode never shortens a label, so an overlong label can be
+    ## rejected before paying the quadratic encoding cost
+    ##
+    croak "label too long [A4_2]" if defined $to_ascii
+      and $l =~ m/\P{ASCII}/ and length($l) > 63 - length($IDNA_PREFIX);
+
     if(defined $to_ascii) {
       $l = $to_ascii->($l, %param);
     }

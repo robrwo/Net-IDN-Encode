@@ -32,6 +32,8 @@ t/punycode_vec-xs.t
 t/uts46_api_call.t
 t/uts46_encode_bytes.t
 t/uts46_encode_utf8.t
+t/uts46_quadratic-pp.t
+t/uts46_quadratic-xs.t
 t/uts46_to_ascii-trans.t
 t/uts46_to_ascii.t
 t/uts46_to_unicode.t

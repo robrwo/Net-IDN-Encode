@@ -17,6 +17,9 @@ Revision history for Perl extension Net::IDN::Encode
           and adding an extra character to the result.
         - fix memory leaks when the XS functions reject input.
         - fix quadratic decoding cost for large labels in the XS backend.
+        - reject a label too long for DNS before punycode-encoding it in
+          to_ascii. The cost of encoding is quadratic in the label length
+          and was paid before the length check.
         - fix the pure-Perl overflow guards on perls with 32-bit integers.
         - match the XS behaviour for undef input in the pure-Perl backend.
 

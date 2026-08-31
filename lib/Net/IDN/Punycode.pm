@@ -90,6 +90,13 @@ value. The latter covers a surrogate in U+D800 to U+DFFF and any
 value above U+10FFFF. It also rejects input large enough to overflow
 the Punycode counters.
 
+The cost of encoding is quadratic in the length of the input. This is
+a property of the algorithm as published in S<RFC 3492>. The function
+does not limit the length of its input, so callers that accept
+untrusted input should apply their own limit before encoding.
+L<Net::IDN::UTS46> and L<Net::IDN::Encode> reject a label that is too
+long for DNS before encoding it.
+
 =item decode_punycode($input)
 
 Decodes C<$input> with Punycode and returns the result.
