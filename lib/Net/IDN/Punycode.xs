@@ -167,7 +167,10 @@ encode_punycode(input)
 		  delta += skip_delta;
 		  for(in_p = skip_p; in_p < in_e;) {
 		    c = utf8n_to_uvchr((U8*)in_p, in_e - in_p, &u8, UTF8_CHECK_ONLY);
-		    assert(u8 != (STRLEN)-1);		/* the scan above rejected these */
+		    /* the scan above rejected these, so no input reaches this
+		       croak, but a -1 here would step in_p back a byte */
+		    if(u8 == (STRLEN)-1)
+		      croak("malformed UTF-8 in input for encode_punycode");
 		    c = NATIVE_TO_UNI(c);
 
 		    if(c < n) {
@@ -271,8 +274,11 @@ decode_punycode(input)
 		    i += c * w;
 		    t = TMIN_MAX(k - bias);
 		    if(c < t) break;
-		    /* the c*w guard above and bias <= 204 bound w */
-		    assert(w <= PUNYCODE_MAXINT / (BASE-t));
+		    /* the c*w guard above and bias <= 204 bound w, so no input
+		       reaches this croak, but it guards the multiply below and
+		       costs one comparison per digit */
+		    if(w > PUNYCODE_MAXINT / (BASE-t))
+		      croak("input exceeds punycode limit");
 		    w *= BASE-t;
 		  }
 		  h++;
