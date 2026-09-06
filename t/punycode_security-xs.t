@@ -189,10 +189,10 @@ foreach my $test (@encode_malformed)
       Encode::_utf8_on($bytes);
       alarm 10;
       eval { Net::IDN::Punycode::encode_punycode($bytes) };
-      exit 0;
+      exit($@ =~ /malformed UTF-8/ ? 0 : 1);
     }
 
     waitpid($pid, 0);
-    is($? & 127, 0, $comment.' (encode_punycode terminates)');
+    is($?, 0, $comment.' (encode_punycode croaks in time)');
   }
 }
