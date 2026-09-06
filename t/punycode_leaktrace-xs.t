@@ -19,6 +19,8 @@ BEGIN {
 
 use Test::NoWarnings;
 
+no warnings 'utf8';    # perl 5.12 and older warn on the fixtures below
+
 our @calls = (
   ["b\x{fc}cher", \&Net::IDN::Punycode::encode_punycode,
     "successful encode"],
@@ -47,6 +49,8 @@ our @calls = (
   ["ib9b", \&Net::IDN::Punycode::decode_punycode,
     "decode croaking on a surrogate code point"],
 );
+
+use warnings 'utf8';
 
 plan tests => 1 + 1 * (scalar @calls) + 1;
 

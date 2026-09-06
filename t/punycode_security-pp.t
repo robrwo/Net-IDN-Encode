@@ -7,8 +7,12 @@ use Net::IDN::Punycode::PP ();
 
 use Test::NoWarnings;
 
-# chr(0xFFFFFFFF) is fatal where ivsize is 4, so build it at runtime
+no warnings 'utf8';    # perl 5.12 and older warn on the fixtures below
+
+# chr(0xFFFFFFFF) is fatal where ivsize is 4, so build it at runtime, and
+# perl 5.8 treats its encoding as malformed
 my $max_uv32 = eval { my $cp = 0xFFFFFFFF; chr $cp };
+undef $max_uv32 unless defined $max_uv32 && utf8::valid($max_uv32);
 
 our @encode_dies = (
   (defined $max_uv32
@@ -54,6 +58,8 @@ our @malformed = (
   ["abc\xFF", "a byte which starts no UTF-8 sequence"],
   ["a\xC0\x80b", "an overlong encoding"],
 );
+
+use warnings 'utf8';
 
 plan tests => 1 + 9
   + 2 * (scalar @encode_dies)

@@ -19,8 +19,12 @@ BEGIN {
 
 use Test::NoWarnings;
 
-# chr(0xFFFFFFFF) is fatal where ivsize is 4, so build it at runtime
+no warnings 'utf8';    # perl 5.12 and older warn on the fixtures below
+
+# chr(0xFFFFFFFF) is fatal where ivsize is 4, so build it at runtime, and
+# perl 5.8 treats its encoding as malformed
 my $max_uv32 = eval { my $cp = 0xFFFFFFFF; chr $cp };
+undef $max_uv32 unless defined $max_uv32 && utf8::valid($max_uv32);
 
 our @encode_dies = (
   (defined $max_uv32
@@ -69,6 +73,7 @@ our @agree = (
   [("a" x 1926).chr(0x10FFFF), "delta just below the RFC 3492 limit"],
   [("a" x 1927).chr(0x10FFFF), "delta above a signed 32 bit limit"],
   [("a" x 3854).chr(0x10FFFF), "delta just below the encoder guard"],
+  ["a".chr(0xFFFF), "a non-character code point"],
 );
 
 our @stringifies = (
@@ -84,6 +89,8 @@ our @encode_malformed = (
   ["a\xC0\x80b", "an overlong encoding"],
   ["a\xC0\xC0\x80b", "an overlong encoding after a stray lead byte"],
 );
+
+use warnings 'utf8';
 
 plan tests => 1
   + 3 * (scalar @encode_malformed)
