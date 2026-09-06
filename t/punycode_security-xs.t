@@ -44,6 +44,16 @@ our @encode_dies = (
 our @decode_dies = (
   ["\x80", qr/non-base character/,
     "a byte outside the basic code points"],
+  ["\x80-a", qr/non-base character/,
+    "a non-basic character before the delimiter"],
+  ["a=", qr/invalid digit/,
+    "a basic but non-alphanumeric character"],
+  ["NMzZNlL6SU", qr/incomplete encoded code point/,
+    "truncated label without a delimiter"],
+  ["abc-td", qr/incomplete encoded code point/,
+    "truncated label after base characters"],
+  ["z", qr/incomplete encoded code point/,
+    "single digit ending mid code point"],
   ["a-99999999999999999999", qr/exceeds punycode limit/,
     "digit weight overflows"],
   ["a-8s902716a", qr/invalid code point/,
@@ -70,9 +80,9 @@ our @decode_roundtrips = (
 );
 
 our @agree = (
-  [("a" x 1926).chr(0x10FFFF), "delta just below the RFC 3492 limit"],
-  [("a" x 1927).chr(0x10FFFF), "delta above a signed 32 bit limit"],
-  [("a" x 3854).chr(0x10FFFF), "delta just below the encoder guard"],
+  [("a" x 1926).chr(0x10FFFF), "delta just below the signed 32 bit limit"],
+  [("a" x 1927).chr(0x10FFFF), "delta just above the signed 32 bit limit"],
+  [("a" x 3854).chr(0x10FFFF), "delta just below the RFC 3492 limit"],
   ["a".chr(0xFFFF), "a non-character code point"],
 );
 
@@ -92,13 +102,20 @@ our @encode_malformed = (
 
 use warnings 'utf8';
 
-plan tests => 1
+plan tests => 1 + 1
   + 3 * (scalar @encode_malformed)
   + 4 * (scalar @encode_dies)
   + 4 * (scalar @decode_dies)
   + 1 * (scalar @decode_roundtrips)
   + 2 * (scalar @agree)
   + 1 * (scalar @stringifies);
+
+{
+  my @warnings;
+  local $SIG{__WARN__} = sub { push @warnings, @_ };
+  is(Net::IDN::Punycode::decode_punycode(undef), "",
+    'decode_punycode(undef) returns the empty string');
+}
 
 foreach my $test (@encode_dies)
 {
@@ -140,7 +157,7 @@ foreach my $test (@agree)
   my ($input, $comment) = @{$test};
 
   my $label = eval { Net::IDN::Punycode::encode_punycode($input) };
-  is($label, Net::IDN::Punycode::PP::encode_punycode($input),
+  is($label, eval { Net::IDN::Punycode::PP::encode_punycode($input) },
     $comment.' (encode_punycode matches PP)');
   is(eval { Net::IDN::Punycode::decode_punycode($label) }, $input,
     $comment.' (decode_punycode round-trips)');
