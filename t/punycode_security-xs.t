@@ -82,6 +82,7 @@ our @encode_malformed = (
   ["\xE2\x82abc", "a truncated UTF-8 sequence at the start"],
   ["abc\xFF", "a byte which starts no UTF-8 sequence"],
   ["a\xC0\x80b", "an overlong encoding"],
+  ["a\xC0\xC0\x80b", "an overlong encoding after a stray lead byte"],
 );
 
 plan tests => 1

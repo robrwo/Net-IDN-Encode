@@ -98,6 +98,9 @@ encode_punycode(input)
 		in_s = in_p = SvPVutf8(input, len);
 		in_e = in_s + len;
 
+		if(!is_utf8_string((U8*)in_s, len))
+		  croak("malformed UTF-8 in input for encode_punycode");
+
 		length_guess = len;
 		if(length_guess < 64) length_guess = 64;	/* optimise for maximum length of domain names */
 		length_guess += 2;				/* plus DELIM + '\0' */
