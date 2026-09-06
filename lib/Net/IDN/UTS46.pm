@@ -158,6 +158,7 @@ sub _validate_label {
   $l =~ m/-$/				and croak "ends with U+002D HYPHEN-MINUS [V3]";
   $l =~ m/\./				and croak "contains U+0023 FULL STOP [V4]";
   $l =~ m/^\p{IsMark}/			and croak "begins with General_Category=Mark [V5]";
+  $l =~ m/(\P{Any})/			and croak sprintf "contains disallowed character U+%04X [V6]", ord $1;
 
   unless($param{'AllowUnassigned'}) {
     $l =~m/(\p{Unassigned})/		and croak sprintf "contains unassigned character U+%04X [V6]", ord $1;
@@ -352,8 +353,9 @@ This function takes the following optional parameters (C<%param>):
 (boolean) If set to a true value, unassigned code points in the label are
 allowed. This is an extension over UTS #46.
 
-Code points that are not Unicode scalar values, a surrogate or a value
-above U+10FFFF, remain disallowed, since they cannot form a valid label.
+The function still rejects a code point that is not a Unicode scalar
+value, a surrogate or a value above U+10FFFF, since it cannot form a
+valid label.
 
 The default is false.
 
