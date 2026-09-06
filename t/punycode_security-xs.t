@@ -104,7 +104,7 @@ our @encode_malformed = (
 
 use warnings 'utf8';
 
-plan tests => 1 + 1
+plan tests => 1 + 3
   + 3 * (scalar @encode_malformed)
   + 4 * (scalar @encode_dies)
   + 4 * (scalar @decode_dies)
@@ -117,6 +117,18 @@ plan tests => 1 + 1
   local $SIG{__WARN__} = sub { push @warnings, @_ };
   is(Net::IDN::Punycode::decode_punycode(undef), "",
     'decode_punycode(undef) returns the empty string');
+}
+
+{
+  my $bytes = "caf\xe9";
+  Net::IDN::Punycode::encode_punycode($bytes);
+  ok(!utf8::is_utf8($bytes),
+    'encode_punycode leaves the UTF-8 flag off a byte string');
+
+  my $undef;
+  local $SIG{__WARN__} = sub {};
+  Net::IDN::Punycode::encode_punycode($undef);
+  ok(!defined $undef, 'encode_punycode leaves an undef argument undefined');
 }
 
 foreach my $test (@encode_dies)

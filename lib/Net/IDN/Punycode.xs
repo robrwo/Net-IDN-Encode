@@ -94,6 +94,9 @@ encode_punycode(input)
 		STRLEN length_guess, len, h, u8;
 
 	CODE:
+		/* SvPVutf8 would upgrade the caller's scalar */
+		if(!SvUTF8(input))
+		  input = sv_mortalcopy(input);
 		in_s = in_p = SvPVutf8(input, len);
 		in_e = in_s + len;
 
