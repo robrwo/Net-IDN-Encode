@@ -28,6 +28,10 @@ my $b = Module::Build->new(
 		'meta-spec' => { 'version' => 2 },
 		'prereqs' => {
 			'test' => {
+				'requires' => {
+					'Test::More' => 0,
+					'Test::NoWarnings' => 0,
+				},
 				'recommends' => {
 					'Test::LeakTrace' => 0,
 				},
