@@ -83,6 +83,8 @@ our @agree = (
   [("a" x 1926).chr(0x10FFFF), "delta just below the signed 32 bit limit"],
   [("a" x 1927).chr(0x10FFFF), "delta just above the signed 32 bit limit"],
   [("a" x 3854).chr(0x10FFFF), "delta just below the RFC 3492 limit"],
+  [chr(0x10FE4F).("a" x 3856),
+    "a delta near the limit before a long basic run"],
   ["a".chr(0xFFFF), "a non-character code point"],
 );
 

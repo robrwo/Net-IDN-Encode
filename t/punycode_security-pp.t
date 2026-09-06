@@ -61,7 +61,7 @@ our @malformed = (
 
 use warnings 'utf8';
 
-plan tests => 1 + 11
+plan tests => 1 + 18
   + 2 * (scalar @encode_dies)
   + 2 * (scalar @decode_dies)
   + 6 * (scalar @malformed);
@@ -79,6 +79,17 @@ plan tests => 1 + 11
   like($@, qr/^Usage:/, 'encode_punycode usage message');
   like($@, qr/ at \Q$0\E line $line\.\n\z/,
     'encode_punycode usage message names the caller');
+  is(eval { Net::IDN::Punycode::PP::decode_punycode("a", "b") }, undef,
+    'decode_punycode with two arguments dies');
+  like($@, qr/^Usage:/, 'decode_punycode usage message for two arguments');
+  is(eval { Net::IDN::Punycode::PP::encode_punycode("a", "b") }, undef,
+    'encode_punycode with two arguments dies');
+  like($@, qr/^Usage:/, 'encode_punycode usage message for two arguments');
+
+  my $near = chr(0x10FE4F).("a" x 3856);
+  is(Net::IDN::Punycode::PP::decode_punycode(
+      Net::IDN::Punycode::PP::encode_punycode($near)), $near,
+    'a delta near the limit before a long basic run round-trips');
 
   my @warnings;
   local $SIG{__WARN__} = sub { push @warnings, @_ };
@@ -131,4 +142,22 @@ foreach my $test (@malformed)
   like($@, qr/non-base character/, $comment.' (decode_punycode message)');
   like($@, qr/ at \Q$0\E line $line\.\n\z/,
     $comment.' (decode_punycode names the caller)');
+}
+
+{
+  package Flip;
+  use overload '""' => sub { $_[0]{calls}++ ? $_[0]{second} : $_[0]{first} },
+    fallback => 1;
+}
+
+{
+  no warnings 'utf8';
+  my $bad = "abc\xE2\x82";
+  Encode::_utf8_on($bad);
+  my $flip = bless { first => "abc", second => $bad, calls => 0 }, 'Flip';
+  is(Net::IDN::Punycode::PP::encode_punycode($flip), "abc-",
+    'encode_punycode stringifies an object once');
+  $flip = bless { first => "abc-", second => $bad, calls => 0 }, 'Flip';
+  is(Net::IDN::Punycode::PP::decode_punycode($flip), "abc",
+    'decode_punycode stringifies an object once');
 }
