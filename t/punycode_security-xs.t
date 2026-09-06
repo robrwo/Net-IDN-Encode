@@ -86,6 +86,9 @@ our @agree = (
   [chr(0x10FE4F).("a" x 3856),
     "a delta near the limit before a long basic run"],
   ["a".chr(0xFFFF), "a non-character code point"],
+  ["a" x 255, "the longest input decoded on the stack"],
+  ["a" x 256, "the shortest input decoded on the heap"],
+  [chr(0xE9) x 128, "two-byte code points filling the heap boundary"],
 );
 
 our @stringifies = (

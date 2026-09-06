@@ -88,10 +88,13 @@ encode_punycode(input)
 		int k, t;
 		int bias = INITIAL_BIAS;
 
-		const char *in_s, *in_p, *in_e, *skip_p;
+		const char *in_s, *in_p, *in_e;
  		char *re_s, *re_p, *re_e;
 		int first = 1;
-		STRLEN length_guess, len, h, u8;
+		STRLEN length_guess, len, h, u8, count, i, skip;
+		U32 cp_stack[256];
+		U32 *cp_s;
+		SV *cp_sv;
 
 	CODE:
 		/* SvPVutf8 would upgrade the caller's scalar */
@@ -102,6 +105,28 @@ encode_punycode(input)
 
 		if(!is_utf8_string((U8*)in_s, len))
 		  croak("malformed UTF-8 in input for encode_punycode");
+
+		/* every code point takes at least one byte */
+		if(len < 256) {
+		  cp_s = cp_stack;
+		} else {
+		  if(len > (MEM_SIZE_MAX - 1) / sizeof(U32))
+		    croak("input too long for encode_punycode");
+		  cp_sv = sv_2mortal(newSV(len * sizeof(U32)));
+		  cp_s = (U32*)SvPVX(cp_sv);
+		}
+
+		count = 0;
+		for(in_p = in_s; in_p < in_e; in_p += u8) {
+		  c = utf8n_to_uvchr((U8*)in_p, in_e - in_p, &u8,
+		    UTF8_CHECK_ONLY|UTF8_ALLOW_SURROGATE|UTF8_ALLOW_FFFF);
+		  if(u8 == (STRLEN)-1)
+		    croak("malformed UTF-8 in input for encode_punycode");
+		  c = NATIVE_TO_UNI(c);
+		  if(c > UNICODE_MAX || isSURROGATE(c))
+		    croak("invalid code point");
+		  cp_s[count++] = (U32)c;
+		}
 
 		length_guess = len;
 		if(length_guess < 64) length_guess = 64;	/* optimise for maximum length of domain names */
@@ -115,13 +140,12 @@ encode_punycode(input)
 		h = 0;
 
 		/* copy basic code points */
-		while(in_p < in_e) {
-		  if( isBASE(*in_p) )  {
-                    grow_string(RETVAL, &re_s, &re_p, &re_e, sizeof(char));
-		    *re_p++ = *in_p;
+		for(i = 0; i < count; i++) {
+		  if(cp_s[i] < INITIAL_N) {
+		    grow_string(RETVAL, &re_s, &re_p, &re_e, sizeof(char));
+		    *re_p++ = (char)UNI_TO_NATIVE(cp_s[i]);
 		    h++;
 		  }
-		  in_p++;
 		}
 
 		/* add DELIM if needed */
@@ -134,24 +158,17 @@ encode_punycode(input)
 		  /* find smallest code point not yet handled */
 		  m = UNICODE_MAX + 1;
 		  q = skip_delta = 0;
+		  skip = 0;
 
-		  for(in_p = skip_p = in_s; in_p < in_e;) {
-		    c = utf8n_to_uvchr((U8*)in_p, in_e - in_p, &u8,
-		      UTF8_CHECK_ONLY|UTF8_ALLOW_SURROGATE|UTF8_ALLOW_FFFF);
-		    if(u8 == (STRLEN)-1)
-		      croak("malformed UTF-8 in input for encode_punycode");
-		    c = NATIVE_TO_UNI(c);
-		    if(c > UNICODE_MAX || isSURROGATE(c))
-		      croak("invalid code point");
-
+		  for(i = 0; i < count; i++) {
+		    c = cp_s[i];
 		    if(c >= n && c < m) {
 		      m = c;
-		      skip_p = in_p;
+		      skip = i;
 		      skip_delta = q;
 		    }
 		    if(c < n)
 		      ++q;
-		    in_p += u8;
 		  }
 		  if(m > UNICODE_MAX)
 		    break;
@@ -168,14 +185,8 @@ encode_punycode(input)
 		  if(skip_delta > PUNYCODE_MAXINT - delta)
 		    croak("input exceeds punycode limit");
 		  delta += skip_delta;
-		  for(in_p = skip_p; in_p < in_e;) {
-		    c = utf8n_to_uvchr((U8*)in_p, in_e - in_p, &u8,
-		      UTF8_CHECK_ONLY|UTF8_ALLOW_SURROGATE|UTF8_ALLOW_FFFF);
-		    /* the scan above rejected these, so no input reaches this
-		       croak, but a -1 here would step in_p back a byte */
-		    if(u8 == (STRLEN)-1)
-		      croak("malformed UTF-8 in input for encode_punycode");
-		    c = NATIVE_TO_UNI(c);
+		  for(i = skip; i < count; i++) {
+		    c = cp_s[i];
 
 		    if(c < n) {
 		      /* delta resets at c == n, so reaching this
@@ -201,7 +212,6 @@ encode_punycode(input)
                       delta = first = 0;
 		      ++h;
                     }
-		    in_p += u8;
 		  }
 		  /* delta resets at c == n, so reaching this takes
 		     PUNYCODE_MAXINT characters */
@@ -214,6 +224,7 @@ encode_punycode(input)
 		*re_p = 0;
 		SvCUR_set(RETVAL, re_p - re_s);
 		SvREFCNT_inc(RETVAL);		/* the typemap mortalises it */
+
 	OUTPUT:
 		RETVAL
 

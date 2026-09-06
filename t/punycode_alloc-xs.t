@@ -16,9 +16,9 @@ BEGIN {
 our $LEN;
 
 BEGIN {
-  # cp_max * sizeof(U32) wraps STRLEN on a 32-bit perl, so only an input
-  # past the wrap point reaches the guard in decode_punycode. That is why
-  # this test wants 1GB and skips everywhere else.
+  # the code point buffer size wraps STRLEN on a 32-bit perl, so only an
+  # input past the wrap point reaches the guard in either function. That
+  # is why this test needs 1GB and skips everywhere else.
   plan skip_all => 'needs a 32-bit address space' if $Config{ptrsize} != 4;
 
   $LEN = 2**30;
@@ -44,7 +44,7 @@ BEGIN {
 
 use Test::NoWarnings;
 
-plan tests => 5;
+plan tests => 7;
 
 my $label = "\xFF" x $LEN;
 
@@ -60,3 +60,11 @@ is(eval { Net::IDN::Punycode::decode_punycode($label) }, undef,
   "the code point buffer size wraps STRLEN (dies)");
 like($@, qr/input too long/,
   "the code point buffer size wraps STRLEN (message)");
+
+substr($label, -1, 1, "a");
+utf8::upgrade($label);    # sets the flag in place on an ASCII string
+
+is(eval { Net::IDN::Punycode::encode_punycode($label) }, undef,
+  "the encoder buffer size wraps STRLEN (dies)");
+like($@, qr/input too long/,
+  "the encoder buffer size wraps STRLEN (message)");
