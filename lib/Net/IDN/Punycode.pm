@@ -84,6 +84,8 @@ The following functions are available:
 =item encode_punycode($input)
 
 Encodes C<$input> with Punycode and returns the result.
+If C<$input> is undefined, the function raises an C<uninitialized>
+warning and returns the empty string.
 
 This function throws an exception on input it cannot encode. It
 rejects malformed UTF-8 and a code point that is not a Unicode scalar
@@ -101,6 +103,8 @@ long for DNS before encoding it.
 =item decode_punycode($input)
 
 Decodes C<$input> with Punycode and returns the result.
+If C<$input> is undefined, the function raises an C<uninitialized>
+warning and returns the empty string.
 
 This function throws an exception on input it cannot decode. It
 rejects a character outside the basic set, an invalid or truncated
