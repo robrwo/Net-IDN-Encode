@@ -30,7 +30,7 @@
 #define uvchr_to_utf8_flags(d, uv, flags) uvuni_to_utf8_flags(d, uv, flags);
 #endif
 
-#ifndef MEM_SIZE_MAX
+#ifndef MEM_SIZE_MAX			/* perl 5.8.5 to 5.8.8 */
 #define MEM_SIZE_MAX ((MEM_SIZE)-1)
 #endif
 
@@ -91,7 +91,6 @@ encode_punycode(input)
 		const char *in_s, *in_p, *in_e, *skip_p;
  		char *re_s, *re_p, *re_e;
 		int first = 1;
-		int found;
 		STRLEN length_guess, len, h, u8;
 
 	CODE:
@@ -129,10 +128,8 @@ encode_punycode(input)
 		}
 
 		for(;;) {
-		  /* find smallest code point not yet handled. UV_MAX is a
-		     code point on 32-bit UVs, so no value can mark "none" */
-		  m = 0;
-		  found = 0;
+		  /* find smallest code point not yet handled */
+		  m = UNICODE_MAX + 1;
 		  q = skip_delta = 0;
 
 		  for(in_p = skip_p = in_s; in_p < in_e;) {
@@ -144,9 +141,8 @@ encode_punycode(input)
 		    if(c > UNICODE_MAX || isSURROGATE(c))
 		      croak("invalid code point");
 
-		    if(c >= n && (!found || c < m)) {
-		      found = 1;
- 		      m = c;
+		    if(c >= n && c < m) {
+		      m = c;
 		      skip_p = in_p;
 		      skip_delta = q;
 		    }
@@ -154,7 +150,7 @@ encode_punycode(input)
 		      ++q;
 		    in_p += u8;
 		  }
-		  if(!found)
+		  if(m > UNICODE_MAX)
 		    break;
 
 		  /* increase delta to the state corresponding to
@@ -181,7 +177,8 @@ encode_punycode(input)
 		    if(c < n) {
 		      /* delta resets at c == n, so reaching this
 		         takes PUNYCODE_MAXINT characters */
-		      if(delta == PUNYCODE_MAXINT) croak("input exceeds punycode limit");
+		      if(delta == PUNYCODE_MAXINT)
+		        croak("input exceeds punycode limit");
 		      ++delta;
                     } else if( c == n ) {
 		      q = delta;
@@ -193,9 +190,7 @@ encode_punycode(input)
 			*re_p++ = enc_digit[t + ((q-t) % (BASE-t))];
 		        q = (q-t) / (BASE-t);
   		      }
-		      /* the loop above exits on q < t <= TMAX, so no input
-			 reaches this croak, but it guards the enc_digit[q]
-			 read below and costs nothing on the reachable path */
+		      /* q < t <= TMAX < BASE, but guard enc_digit[q] anyway */
 		      if(q >= BASE) croak("input exceeds punycode limit");
 		      grow_string(RETVAL, &re_s, &re_p, &re_e, sizeof(char));
 	              *re_p++ = enc_digit[q];
@@ -207,14 +202,15 @@ encode_punycode(input)
 		  }
 		  /* delta resets at c == n, so reaching this takes
 		     PUNYCODE_MAXINT characters */
-		  if(delta == PUNYCODE_MAXINT) croak("input exceeds punycode limit");
+		  if(delta == PUNYCODE_MAXINT)
+		    croak("input exceeds punycode limit");
 		  ++delta;
 		  ++n;
 		}
 		grow_string(RETVAL, &re_s, &re_p, &re_e, sizeof(char));
 		*re_p = 0;
 		SvCUR_set(RETVAL, re_p - re_s);
-		SvREFCNT_inc(RETVAL);		/* the typemap mortalises the return value */
+		SvREFCNT_inc(RETVAL);		/* the typemap mortalises it */
 	OUTPUT:
 		RETVAL
 
@@ -243,7 +239,8 @@ decode_punycode(input)
 		skip_p = NULL;
 		for(in_p = in_s; in_p < in_e; in_p++) {
 		  c = *in_p;					/* we don't care whether it's UTF-8 */
-		  if(!isBASE(c)) croak("non-base character in input for decode_punycode");
+		  if(!isBASE(c))
+		    croak("non-base character in input for decode_punycode");
 		  if(c == DELIM) skip_p = in_p;
 		}
 
@@ -263,25 +260,25 @@ decode_punycode(input)
 		cp_sv = sv_2mortal(newSV(cp_max * sizeof(U32)));
 		cp_s = (U32*)SvPVX(cp_sv);
 		for(j = 0; j < h; j++)
-		  cp_s[j] = (unsigned char)in_s[j];		/* copy base chars */
+		  cp_s[j] = (unsigned char)in_s[j];	/* copy base chars */
 
 		for(in_p = skip_p; in_p < in_e; i++) {
 		  oldi = i;
 		  w = 1;
 
 	          for(k = BASE;; k+= BASE) {
-		    if(!(in_p < in_e)) croak("incomplete encoded code point in decode_punycode");
+		    if(!(in_p < in_e))
+		      croak("incomplete encoded code point in decode_punycode");
 		    dc = dec_digit[*in_p++];			/* we already know it's in 0..127 */
-		    if(dc < 0) croak("invalid digit in input for decode_punycode");
+		    if(dc < 0)
+		      croak("invalid digit in input for decode_punycode");
 		    c = (UV)dc;
 		    if(c > (PUNYCODE_MAXINT - i) / w)
 		      croak("input exceeds punycode limit");
 		    i += c * w;
 		    t = TMIN_MAX(k - bias);
 		    if(c < t) break;
-		    /* the c*w guard above and bias <= 204 bound w, so no input
-		       reaches this croak, but it guards the multiply below and
-		       costs one comparison per digit */
+		    /* the overflow check of RFC 3492 section 6.2 */
 		    if(w > PUNYCODE_MAXINT / (BASE-t))
 		      croak("input exceeds punycode limit");
 		    w *= BASE-t;
@@ -289,14 +286,15 @@ decode_punycode(input)
 		  h++;
 		  bias = adapt(i-oldi, h, first);
 		  first = 0;
-		  if(i / h > UNICODE_MAX - n)			/* adding first wraps a 32-bit UV */
+		  /* adding first wraps a 32-bit UV */
+		  if(i / h > UNICODE_MAX - n)
 		    croak("invalid code point");
 		  n += i / h;					/* code point n to insert */
-		  if(isSURROGATE(n))				/* not a Unicode scalar value */
+		  if(isSURROGATE(n))		/* not a Unicode scalar value */
 		    croak("invalid code point");
 	          i = i % h;					/* at position i */
 
-		  if(i < h-1)					/* move succeeding chars */
+		  if(i < h-1)			/* move succeeding chars */
 		    Move(cp_s + i, cp_s + i + 1, (h-1) - i, U32);
 		  cp_s[i] = (U32)n;
 		}
@@ -305,16 +303,17 @@ decode_punycode(input)
 		for(j = 0; j < h; j++)
 		  total += UNISKIP(cp_s[j]);
 
-		RETVAL = NEWSV('D', total + 1);
+		RETVAL = newSV(total + 1);
 		sv_2mortal(RETVAL);		/* freed on croak */
 		SvPOK_only(RETVAL);
 		re_s = re_p = SvPV_nolen(RETVAL);
 		for(j = 0; j < h; j++)
-		  re_p = (char*)uvchr_to_utf8_flags((U8*)re_p, cp_s[j], UNICODE_ALLOW_ANY);
+		  re_p = (char*)uvchr_to_utf8_flags((U8*)re_p, cp_s[j],
+		    UNICODE_ALLOW_ANY);
 
 		if(!first) SvUTF8_on(RETVAL);			/* UTF-8 chars have been inserted */
 		*re_p = 0;
 		SvCUR_set(RETVAL, re_p - re_s);
-		SvREFCNT_inc(RETVAL);		/* the typemap mortalises the return value */
+		SvREFCNT_inc(RETVAL);		/* the typemap mortalises it */
 	OUTPUT:
 		RETVAL
