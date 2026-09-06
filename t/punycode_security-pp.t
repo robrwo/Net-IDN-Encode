@@ -61,18 +61,24 @@ our @malformed = (
 
 use warnings 'utf8';
 
-plan tests => 1 + 9
+plan tests => 1 + 11
   + 2 * (scalar @encode_dies)
   + 2 * (scalar @decode_dies)
-  + 4 * (scalar @malformed);
+  + 6 * (scalar @malformed);
 
 {
+  my $line = __LINE__ + 1;
   is(eval { Net::IDN::Punycode::PP::decode_punycode() }, undef,
     'decode_punycode without arguments dies');
   like($@, qr/^Usage:/, 'decode_punycode usage message');
+  like($@, qr/ at \Q$0\E line $line\.\n\z/,
+    'decode_punycode usage message names the caller');
+  $line = __LINE__ + 1;
   is(eval { Net::IDN::Punycode::PP::encode_punycode() }, undef,
     'encode_punycode without arguments dies');
   like($@, qr/^Usage:/, 'encode_punycode usage message');
+  like($@, qr/ at \Q$0\E line $line\.\n\z/,
+    'encode_punycode usage message names the caller');
 
   my @warnings;
   local $SIG{__WARN__} = sub { push @warnings, @_ };
@@ -113,10 +119,16 @@ foreach my $test (@malformed)
 
   no warnings 'utf8';
   Encode::_utf8_on($bytes);
+  my $line = __LINE__ + 1;
   is(eval { Net::IDN::Punycode::PP::encode_punycode($bytes) }, undef,
     $comment.' (encode_punycode dies)');
   like($@, qr/malformed UTF-8/, $comment.' (encode_punycode message)');
+  like($@, qr/ at \Q$0\E line $line\.\n\z/,
+    $comment.' (encode_punycode names the caller)');
+  $line = __LINE__ + 1;
   is(eval { Net::IDN::Punycode::PP::decode_punycode($bytes) }, undef,
     $comment.' (decode_punycode dies)');
   like($@, qr/non-base character/, $comment.' (decode_punycode message)');
+  like($@, qr/ at \Q$0\E line $line\.\n\z/,
+    $comment.' (decode_punycode names the caller)');
 }

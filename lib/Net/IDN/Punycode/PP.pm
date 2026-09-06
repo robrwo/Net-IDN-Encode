@@ -48,8 +48,14 @@ sub _adapt {
     return $k + int(((BASE - TMIN + 1) * $delta) / ($delta + SKEW));
 }
 
+## die, not croak - Carp itself fails while it formats a malformed argument
+sub _die {
+    my ($file, $line) = (caller 1)[1, 2];
+    die "$_[0] at $file line $line.\n";
+}
+
 sub decode_punycode {
-    die("Usage: Net::IDN::Punycode::decode_punycode(input)") unless @_;
+    _die("Usage: Net::IDN::Punycode::decode_punycode(input)") unless @_;
     no warnings 'utf8';
 
     my $input = shift;
@@ -64,8 +70,7 @@ sub decode_punycode {
             'Use of uninitialized value in subroutine entry');
         return '';
     }
-    ## die, not croak - Carp dies formatting the malformed argument
-    die("non-base character in input for decode_punycode")
+    _die("non-base character in input for decode_punycode")
       unless utf8::valid($input);
     return '' unless length $input;
 
@@ -122,7 +127,7 @@ sub decode_punycode {
 }
 
 sub encode_punycode {
-    die("Usage: Net::IDN::Punycode::encode_punycode(input)") unless @_;
+    _die("Usage: Net::IDN::Punycode::encode_punycode(input)") unless @_;
     no warnings 'utf8';
 
     my $input = shift;
@@ -131,8 +136,7 @@ sub encode_punycode {
             'Use of uninitialized value in subroutine entry');
         return '';
     }
-    ## die, not croak - Carp dies formatting the malformed argument
-    die("malformed UTF-8 in input for encode_punycode")
+    _die("malformed UTF-8 in input for encode_punycode")
       unless utf8::valid($input);
     my $input_length = length $input;
 
