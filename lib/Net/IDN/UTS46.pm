@@ -36,6 +36,8 @@ sub uts46_to_ascii {
   splice @_, 1, 0, sub {
     local $_ = shift;
     if(m/\P{ASCII}/) {
+      ## punycode never shortens a label
+      croak "label too long [A4_2]" if length($_) > 63 - length($IDNA_PREFIX);
       eval { $_ = $IDNA_PREFIX . encode_punycode($_) };
       croak "$@ [A3]" if $@;
     }
@@ -120,12 +122,6 @@ sub _process {
   foreach my $l (@ll) {
     _validate_bidi($l,%param)		if $is_bidi;
     _validate_contextj($l,%param);
-
-    ## punycode never shortens a label, so an overlong label can be
-    ## rejected before paying the quadratic encoding cost
-    ##
-    croak "label too long [A4_2]" if defined $to_ascii
-      and $l =~ m/\P{ASCII}/ and length($l) > 63 - length($IDNA_PREFIX);
 
     if(defined $to_ascii) {
       $l = $to_ascii->($l, %param);
