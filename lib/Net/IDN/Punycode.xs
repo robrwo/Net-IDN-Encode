@@ -243,6 +243,7 @@ decode_punycode(input)
 		char *re_s, *re_p;
 		int first = 1;
 		STRLEN len, h, total, cp_max;
+		U32 cp_stack[256];
 		U32 *cp_s;
 		SV *cp_sv;
 
@@ -268,11 +269,14 @@ decode_punycode(input)
 
 		/* every insertion consumes at least one digit byte */
 		cp_max = h + (in_e - skip_p) + 1;
-		if(cp_max > (MEM_SIZE_MAX - 1) / sizeof(U32))
-		  croak("input too long for decode_punycode");
-
-		cp_sv = sv_2mortal(newSV(cp_max * sizeof(U32)));
-		cp_s = (U32*)SvPVX(cp_sv);
+		if(cp_max <= 256) {
+		  cp_s = cp_stack;
+		} else {
+		  if(cp_max > (MEM_SIZE_MAX - 1) / sizeof(U32))
+		    croak("input too long for decode_punycode");
+		  cp_sv = sv_2mortal(newSV(cp_max * sizeof(U32)));
+		  cp_s = (U32*)SvPVX(cp_sv);
+		}
 		for(j = 0; j < h; j++)
 		  cp_s[j] = (unsigned char)in_s[j];	/* copy base chars */
 
@@ -321,9 +325,13 @@ decode_punycode(input)
 		sv_2mortal(RETVAL);		/* freed on croak */
 		SvPOK_only(RETVAL);
 		re_s = re_p = SvPV_nolen(RETVAL);
-		for(j = 0; j < h; j++)
-		  re_p = (char*)uvchr_to_utf8_flags((U8*)re_p, cp_s[j],
-		    UNICODE_ALLOW_ANY);
+		for(j = 0; j < h; j++) {
+		  if(UNI_IS_INVARIANT(cp_s[j]))
+		    *re_p++ = (char)cp_s[j];
+		  else
+		    re_p = (char*)uvchr_to_utf8_flags((U8*)re_p, cp_s[j],
+		      UNICODE_ALLOW_ANY);
+		}
 
 		if(!first) SvUTF8_on(RETVAL);			/* UTF-8 chars have been inserted */
 		*re_p = 0;
