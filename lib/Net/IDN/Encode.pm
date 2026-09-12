@@ -87,7 +87,6 @@ sub _email {
       )?$/xo || croak "Invalid email address";
   my($local_part,$at,$domain,$domain_literal) = ($1,$2,$3);
 
-  $local_part =~ m/\P{ASCII}/ && croak "Non-ASCII characters in local-part";
   $domain_literal =~ m/\P{ASCII}/ && croak "Non-ASCII characters in domain-literal" if $domain_literal;
 
   $domain = $to_function->($domain,%param) if $domain;
