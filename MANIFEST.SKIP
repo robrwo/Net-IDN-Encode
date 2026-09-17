@@ -80,3 +80,8 @@
 
 # skip POD tests
 ^t/[0-9]+.*pod.*\.t$
+
+# Avoid working files
+^llm/
+^\.mailmap$
+^\.perl-version$

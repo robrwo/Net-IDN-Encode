@@ -13,6 +13,7 @@ my $b = Module::Build->new(
 	'dist_abstract' => 'Internationalizing Domain Names in Applications (UTS #46)',
 
 	'sign'		=> 0,
+	'release_status' => 'testing',
 	'create_license' => 1,
 	'create_makefile_pl' => 'traditional',
 
@@ -23,6 +24,20 @@ my $b = Module::Build->new(
 	'test_requires' => {
 		'Test::More' => 0,
 		'Test::NoWarnings' => 0,
+	},
+	'meta_merge' => {
+		'meta-spec' => { 'version' => 2 },
+		'prereqs' => {
+			'test' => {
+				'requires' => {
+					'Test::More' => 0,
+					'Test::NoWarnings' => 0,
+				},
+				'recommends' => {
+					'Test::LeakTrace' => 0,
+				},
+			},
+		},
 	},
 	'needs_compiler' => undef,
 
