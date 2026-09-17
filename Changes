@@ -1,6 +1,6 @@
 Revision history for Perl extension Net::IDN::Encode
 
-2.590
+2.590 2026-09-17 (TRIAL RELEASE)
         - fix CVE-2026-74766, a heap use-after-free in the XS decode_punycode
           on attacker-supplied punycode
         - fix CVE-2026-74765, an integer overflow and out-of-bounds read in the
