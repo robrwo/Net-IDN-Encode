@@ -20,6 +20,8 @@ BEGIN {
 
 use Test::NoWarnings;
 
+no warnings 'utf8';    # perl 5.12 and older warn on the fixture below
+
 # chr(0xFFFFFFFF) is fatal where ivsize is 4, so build it at runtime
 my $max_uv32 = eval { my $cp = 0xFFFFFFFF; chr $cp };
 
