@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 
+use Config;
 use Test::More;
 
 BEGIN { $Net::IDN::Punycode::_NO_XS = 1 }
@@ -11,7 +12,8 @@ use Net::IDN::Punycode::PP ();
 BEGIN {
   plan skip_all => 'XS version loaded despite $_NO_XS' if !eval {
     \&Net::IDN::Punycode::encode_punycode ==
-    \&Net::IDN::Punycode::PP::encode_punycode; }
+    \&Net::IDN::Punycode::PP::encode_punycode; };
+  plan skip_all => 'fork is emulated' if $Config{d_pseudofork};
 }
 
 use Test::NoWarnings;
