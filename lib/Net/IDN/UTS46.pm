@@ -62,6 +62,9 @@ sub _process {
 # 1. Map
 #   - disallowed
 #
+  ## reject a non code point before the mapping tables warn about it
+  $label =~ m/(\P{Any})/ and croak sprintf('contains disallowed character U+%04X [V6]', ord($1));
+
   if($param{'AllowUnassigned'}) {
     $label =~ m/(\p{Is_DisallowedAssigned})/ and croak sprintf('disallowed character U+%04X', ord($1));
   } else {
@@ -158,7 +161,6 @@ sub _validate_label {
   $l =~ m/-$/				and croak "ends with U+002D HYPHEN-MINUS [V3]";
   $l =~ m/\./				and croak "contains U+0023 FULL STOP [V4]";
   $l =~ m/^\p{IsMark}/			and croak "begins with General_Category=Mark [V5]";
-  $l =~ m/(\P{Any})/			and croak sprintf "contains disallowed character U+%04X [V6]", ord $1;
 
   unless($param{'AllowUnassigned'}) {
     $l =~m/(\p{Unassigned})/		and croak sprintf "contains unassigned character U+%04X [V6]", ord $1;
