@@ -34,6 +34,10 @@
 #define MEM_SIZE_MAX ((MEM_SIZE)-1)
 #endif
 
+#ifndef UTF8_ALLOW_FE_FF		/* perl 5.14 to 5.26 */
+#define UTF8_ALLOW_FE_FF 0
+#endif
+
 static char enc_digit[BASE] = {
   'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
   'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -119,7 +123,8 @@ encode_punycode(input)
 		count = 0;
 		for(in_p = in_s; in_p < in_e; in_p += u8) {
 		  c = utf8n_to_uvchr((U8*)in_p, in_e - in_p, &u8,
-		    UTF8_CHECK_ONLY|UTF8_ALLOW_SURROGATE|UTF8_ALLOW_FFFF);
+		    UTF8_CHECK_ONLY|UTF8_ALLOW_SURROGATE|UTF8_ALLOW_FFFF|
+		    UTF8_ALLOW_FE_FF);
 		  if(u8 == (STRLEN)-1)
 		    croak("malformed UTF-8 in input for encode_punycode");
 		  c = NATIVE_TO_UNI(c);
