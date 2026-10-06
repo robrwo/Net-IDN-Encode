@@ -1,6 +1,9 @@
 use strict;
 use utf8;
-use Test::Spelling;
+use Test::More;
+
+eval "use Test::Spelling";
+plan skip_all => "Test::Spelling required for testing POD spelling" if $@;
 
 add_stopwords(map { split /[ \r\n]+/ } <DATA>);
 all_pod_files_spelling_ok();
