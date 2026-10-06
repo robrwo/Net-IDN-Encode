@@ -1,5 +1,11 @@
 Revision history for Perl extension Net::IDN::Encode
 
+2.591 2026-10-06 (TRIAL RELEASE)
+        - fix the XS encode_punycode error message on perl 5.12.5
+        - fix warnings from Net::IDN::UTS46 on perl 5.14 and 5.16
+        - fix test failures on perl 5.12 and older, and on Windows
+        - add a GitHub Actions workflow
+
 2.590 2026-09-17 (TRIAL RELEASE)
         - fix CVE-2026-74766, a heap use-after-free in the XS decode_punycode
           on attacker-supplied punycode
