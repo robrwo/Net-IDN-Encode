@@ -74,22 +74,52 @@ jobs:
 
   test-32bit:
     runs-on: ubuntu-latest
+    env:
+      PERL32_VERSION: "5.44.0"
+      IMAGE: i386/debian:trixie
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build and test in a 32-bit container
+      - name: Restore the 32-bit perl
+        id: perl32
+        uses: actions/cache@v4
+        with:
+          path: ~/perl32
+          key: perl32-${{ env.PERL32_VERSION }}-trixie
+
+      - name: Build a 32-bit perl with ivsize 4
+        if: steps.perl32.outputs.cache-hit != 'true'
         run: |
-          docker run --rm --platform linux/386 -v "$PWD:/src:ro" \
-            i386/debian:trixie sh -e -c '
+          mkdir -p ~/perl32
+          docker run --rm --platform linux/386 -e PERL32_VERSION \
+            -v "$HOME/perl32:/perl" "$IMAGE" sh -e -c '
               export DEBIAN_FRONTEND=noninteractive
               apt-get update -qq
-              apt-get install -y -qq --no-install-recommends perl \
-                build-essential libmodule-build-perl libtest-nowarnings-perl \
-                libtest-leaktrace-perl procps
+              apt-get install -y -qq --no-install-recommends build-essential \
+                curl ca-certificates
+              src=https://www.cpan.org/src/5.0
+              curl -fsSL "$src/perl-$PERL32_VERSION.tar.gz" | tar xz
+              cd "perl-$PERL32_VERSION"
+              ./Configure -des -Dprefix=/perl
+              make -j 4
+              make install
+              curl -fsSL https://cpanmin.us | /perl/bin/perl - --notest \
+                Module::Build Test::NoWarnings Test::LeakTrace
+            '
+
+      - name: Build and test with the 32-bit perl
+        run: |
+          docker run --rm --platform linux/386 -v "$HOME/perl32:/perl:ro" \
+            -v "$PWD:/src:ro" "$IMAGE" sh -e -c '
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update -qq
+              apt-get install -y -qq --no-install-recommends build-essential \
+                procps
               cp -r /src /work
               cd /work
-              perl -V
+              export PATH=/perl/bin:$PATH
+              perl -V:ivsize -V:ptrsize
               perl Build.PL && perl Build && perl Build test
             '
 
