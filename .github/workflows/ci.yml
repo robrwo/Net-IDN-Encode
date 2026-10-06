@@ -9,10 +9,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -74,10 +70,7 @@ jobs:
           Test::LeakTrace
 
       - name: Build and test
-        run: |
-          perl Build.PL
-          perl Build
-          perl Build test
+        run: perl Build.PL && perl Build && perl Build test
 
   test-32bit:
     runs-on: ubuntu-latest
@@ -97,9 +90,7 @@ jobs:
               cp -r /src /work
               cd /work
               perl -V
-              perl Build.PL
-              perl Build
-              perl Build test
+              perl Build.PL && perl Build && perl Build test
             '
 
   author:
@@ -124,10 +115,7 @@ jobs:
           Test::Pod Test::Pod::Coverage Test::Spelling
 
       - name: Build and test
-        run: |
-          perl Build.PL
-          perl Build
-          perl Build test
+        run: perl Build.PL && perl Build && perl Build test
 
       - name: Check the distribution
         run: |
