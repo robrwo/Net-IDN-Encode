@@ -39,7 +39,9 @@ jobs:
           - { os: "ubuntu-latest", perl: "5.44" }
           - { os: "ubuntu-latest", perl: "5.44", perl-threaded: true }
           - { os: "windows-latest", perl: "5" }
-          - { os: "windows-latest", perl: "5.22" }
+          - os: "windows-latest"
+            perl: "5.22"
+            cpanm-opt: "--from http://www.cpan.org/"
 
     steps:
       - name: Keep LF line endings on checkout
@@ -65,6 +67,8 @@ jobs:
       - run: perl -V
 
       - name: Install test prerequisites
+        env:
+          PERL_CPANM_OPT: ${{ matrix.cpanm-opt }}
         run: >
           cpanm --notest Module::Build ExtUtils::CBuilder Test::NoWarnings
           Test::LeakTrace
