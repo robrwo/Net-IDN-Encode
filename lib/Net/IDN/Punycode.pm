@@ -8,7 +8,7 @@ use warnings;
 
 use Exporter;
 
-our $VERSION = "2.590";
+our $VERSION    = "2.591";
 our $XS_VERSION = $VERSION;
 $VERSION = eval $VERSION;
 
