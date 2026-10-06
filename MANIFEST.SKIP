@@ -83,5 +83,7 @@
 
 # Avoid working files
 ^llm/
+^tmp/
 ^\.mailmap$
 ^\.perl-version$
+^\.github/
