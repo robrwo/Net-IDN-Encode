@@ -112,7 +112,7 @@ jobs:
       - name: Install test and author prerequisites
         run: >
           cpanm --notest Module::Build Test::NoWarnings Test::LeakTrace
-          Test::Pod Test::Pod::Coverage Test::Spelling
+          Test::Pod Test::Pod::Coverage Test::Spelling Software::License
 
       - name: Build and test
         run: perl Build.PL && perl Build && perl Build test
