@@ -1,0 +1,136 @@
+---
+name: Run Tests
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ macos-latest ]
+        perl: [ "5" ]
+        include:
+          - { os: "ubuntu-latest", perl: "5.8" }
+          - { os: "ubuntu-latest", perl: "5.10" }
+          - { os: "ubuntu-latest", perl: "5.12" }
+          - { os: "ubuntu-latest", perl: "5.14" }
+          - { os: "ubuntu-latest", perl: "5.16" }
+          - { os: "ubuntu-latest", perl: "5.18" }
+          - { os: "ubuntu-latest", perl: "5.20" }
+          - { os: "ubuntu-latest", perl: "5.22" }
+          - { os: "ubuntu-latest", perl: "5.24" }
+          - { os: "ubuntu-latest", perl: "5.26" }
+          - { os: "ubuntu-latest", perl: "5.28" }
+          - { os: "ubuntu-latest", perl: "5.30" }
+          - { os: "ubuntu-latest", perl: "5.32" }
+          - { os: "ubuntu-latest", perl: "5.34" }
+          - { os: "ubuntu-latest", perl: "5.36" }
+          - { os: "ubuntu-latest", perl: "5.38" }
+          - { os: "ubuntu-latest", perl: "5.40" }
+          - { os: "ubuntu-latest", perl: "5.42" }
+          - { os: "ubuntu-latest", perl: "5.44" }
+          - { os: "ubuntu-latest", perl: "5.44", perl-threaded: true }
+          - { os: "windows-latest", perl: "5" }
+          - { os: "windows-latest", perl: "5.22" }
+
+    steps:
+      - name: Keep LF line endings on checkout
+        if: matrix.os == 'windows-latest'
+        run: git config --global core.autocrlf false
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up perl
+        uses: shogo82148/actions-setup-perl@v1
+        if: matrix.os != 'windows-latest'
+        with:
+          perl-version: ${{ matrix.perl }}
+          multi-thread: ${{ matrix.perl-threaded }}
+      - name: Set up perl (Strawberry)
+        uses: shogo82148/actions-setup-perl@v1
+        if: matrix.os == 'windows-latest'
+        with:
+          perl-version: ${{ matrix.perl }}
+          distribution: "strawberry"
+
+      - run: perl -V
+
+      - name: Install test prerequisites
+        run: >
+          cpanm --notest Module::Build ExtUtils::CBuilder Test::NoWarnings
+          Test::LeakTrace
+
+      - name: Build and test
+        run: |
+          perl Build.PL
+          perl Build
+          perl Build test
+
+  test-32bit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build and test in a 32-bit container
+        run: |
+          docker run --rm --platform linux/386 -v "$PWD:/src:ro" \
+            i386/debian:trixie sh -e -c '
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update -qq
+              apt-get install -y -qq --no-install-recommends perl \
+                build-essential libmodule-build-perl libtest-nowarnings-perl \
+                libtest-leaktrace-perl procps
+              cp -r /src /work
+              cd /work
+              perl -V
+              perl Build.PL
+              perl Build
+              perl Build test
+            '
+
+  author:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: "5"
+
+      - name: Install a spell checker
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq aspell aspell-en
+
+      - name: Install test and author prerequisites
+        run: >
+          cpanm --notest Module::Build Test::NoWarnings Test::LeakTrace
+          Test::Pod Test::Pod::Coverage Test::Spelling
+
+      - name: Build and test
+        run: |
+          perl Build.PL
+          perl Build
+          perl Build test
+
+      - name: Check the distribution
+        run: |
+          perl Build distmeta
+          perl Build distcheck
+          perl Build dist
